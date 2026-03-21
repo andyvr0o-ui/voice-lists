@@ -458,42 +458,17 @@ function makeVoice() {
     start(onResult, opts = {}) {
       if (!SR) { alert('Speech recognition requires Chrome.'); return; }
       rec = new SR();
-      rec.continuous     = opts.continuous || false;
+      rec.continuous     = false;
       rec.interimResults = true;
       rec.lang           = 'en-US';
       rec.onresult = e => {
-        let finalText = '';
-        let hasInterim = false;
-        let interimText = '';
-
         for (let i = e.resultIndex; i < e.results.length; i++) {
-          if (e.results[i].isFinal) {
-            finalText += e.results[i][0].transcript;
-          } else {
-            hasInterim = true;
-            interimText += e.results[i][0].transcript;
-          }
-        }
-
-        if (finalText.trim()) {
-          clearTimeout(rec._finalTimer);
-          rec._finalText = (rec._finalText || '') + ' ' + finalText.trim();
-          rec._finalTimer = setTimeout(() => {
-            const committed = rec._finalText.trim();
-            rec._finalText = '';
-            if (committed) onResult(committed, true);
-          }, 400);
-        } else if (hasInterim) {
-          onResult(interimText.trim(), false);
+          const r = e.results[i];
+          onResult(r[0].transcript.trim(), r.isFinal);
         }
       };
       rec.onend  = () => { isOn = false; if (opts.onEnd) opts.onEnd(); };
-      rec.onerror= (e) => {
-        // Ignore no-speech errors during continuous mode — just restart
-        isOn = false;
-        if (opts.continuous && opts.onError) opts.onError(e.error);
-        else if (opts.onEnd) opts.onEnd();
-      };
+      rec.onerror= () => { isOn = false; if (opts.onEnd) opts.onEnd(); };
       rec.start();
       isOn = true;
     },
@@ -774,15 +749,16 @@ function addSubItem(gid, text) {
 }
 
 // ═══════════════════════════════════════
-//  MIC BUTTON — continuous with auto-restart
+//  MIC BUTTON
 // ═══════════════════════════════════════
 const micBtn   = document.getElementById('mic-btn');
 const micWrap  = document.getElementById('mic-wrap');
 const itemWfEl = document.getElementById('item-waveform');
 const itemTxEl = document.getElementById('item-transcript');
 const vBarEl   = document.getElementById('voice-bar');
-let itemBars   = [];
-let keepListening = false; // controls auto-restart
+let itemBars      = [];
+let keepListening = false;
+let lastFinalText = '';
 
 function setMicActive(on) {
   if (on) {
@@ -805,40 +781,22 @@ function startItemListening() {
   itemTxEl.className = 'voice-transcript';
 
   itemVoice.start((text, isFinal) => {
-    // Show interim transcript
     itemTxEl.textContent = text || 'Listening…';
-    itemTxEl.className = 'voice-transcript' + (text?' has-text':'');
+    itemTxEl.className = 'voice-transcript' + (text ? ' has-text' : '');
 
-    if (isFinal && text) {
+    if (isFinal && text && text !== lastFinalText) {
+      lastFinalText = text;
       processVoiceItem(text);
-      // Reset transcript display after processing
-      setTimeout(() => {
-        if (keepListening) {
-          itemTxEl.textContent = 'Listening…';
-          itemTxEl.className = 'voice-transcript';
-        }
-      }, 600);
     }
   }, {
-    continuous: true,
     onEnd: () => {
-      // Auto-restart if still supposed to be listening
+      // Chrome stops after each pause — add the item then restart
       if (keepListening) {
+        lastFinalText = '';
         setTimeout(() => {
           if (keepListening) startItemListening();
-        }, 200);
+        }, 150);
       } else {
-        setMicActive(false);
-      }
-    },
-    onError: (err) => {
-      // On error, restart if still listening (handles Android timeouts)
-      if (keepListening && err !== 'not-allowed') {
-        setTimeout(() => {
-          if (keepListening) startItemListening();
-        }, 300);
-      } else {
-        keepListening = false;
         setMicActive(false);
       }
     }
@@ -848,14 +806,13 @@ function startItemListening() {
 
 micBtn.addEventListener('click', () => {
   if (keepListening) {
-    // Stop
     keepListening = false;
     itemVoice.stop();
     itemVoice.stopWave();
     setMicActive(false);
   } else {
-    // Start
     keepListening = true;
+    lastFinalText = '';
     setMicActive(true);
     startItemListening();
   }
