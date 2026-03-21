@@ -462,9 +462,30 @@ function makeVoice() {
       rec.interimResults = true;
       rec.lang           = 'en-US';
       rec.onresult = e => {
-        // Only process the LATEST result to avoid duplication
-        const latest = e.results[e.results.length - 1];
-        onResult(latest[0].transcript.trim(), latest.isFinal);
+        let finalText = '';
+        let hasInterim = false;
+        let interimText = '';
+
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          if (e.results[i].isFinal) {
+            finalText += e.results[i][0].transcript;
+          } else {
+            hasInterim = true;
+            interimText += e.results[i][0].transcript;
+          }
+        }
+
+        if (finalText.trim()) {
+          clearTimeout(rec._finalTimer);
+          rec._finalText = (rec._finalText || '') + ' ' + finalText.trim();
+          rec._finalTimer = setTimeout(() => {
+            const committed = rec._finalText.trim();
+            rec._finalText = '';
+            if (committed) onResult(committed, true);
+          }, 400);
+        } else if (hasInterim) {
+          onResult(interimText.trim(), false);
+        }
       };
       rec.onend  = () => { isOn = false; if (opts.onEnd) opts.onEnd(); };
       rec.onerror= (e) => {
