@@ -82,10 +82,7 @@
   .rename-voice-bar { padding: 8px 12px; background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3); border-radius: 12px; margin-bottom: 8px; }
   .rename-voice-text { font-size: 12px; text-align: center; margin-top: 4px; color: rgba(255,255,255,0.55); font-style: italic; }
 
-  /* ── Day banner ── */
-  .day-banner { margin-top: 10px; padding: 8px 14px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; }
-  .day-banner-text { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.75); }
-  .day-banner-exit { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.35); cursor: pointer; border: none; background: none; font-family: inherit; }
+
 
   /* ── Items ── */
   .item-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; margin-bottom: 8px; border-radius: 16px; border: 1px solid var(--border); animation: slideIn 0.22s ease; transition: background 0.15s; }
@@ -241,10 +238,7 @@
         <div class="progress-bar"><div class="progress-fill" id="detail-progress-fill"></div></div>
         <div class="progress-label" id="detail-progress-label"></div>
       </div>
-      <div class="day-banner" id="day-banner" style="display:none;">
-        <span class="day-banner-text" id="day-banner-text"></span>
-        <button class="day-banner-exit" id="day-banner-exit">✕ Exit</button>
-      </div>
+
     </div>
 
     <div class="scroll" id="detail-scroll"></div>
@@ -565,18 +559,7 @@ function renderDetail() {
     document.getElementById('detail-progress-label').textContent = `${done} of ${total} done`;
   } else { prog.style.display = 'none'; }
 
-  const banner = document.getElementById('day-banner');
-  if (state.activeDayId) {
-    const dg = list.items?.find(i => i.id === state.activeDayId);
-    if (dg) {
-      const dc = DAY_COLORS[dg.day];
-      banner.style.display = '';
-      banner.style.background = dc.light;
-      banner.style.border = `1px solid ${dc.border}`;
-      document.getElementById('day-banner-text').innerHTML =
-        `🎤 Adding to <strong style="color:#fff">${capFirst(dg.day)}</strong>`;
-    } else { banner.style.display = 'none'; state.activeDayId = null; }
-  } else { banner.style.display = 'none'; }
+
 
   renderItems();
 }
@@ -716,7 +699,7 @@ function processVoiceItem(text) {
     if (existing) {
       if (parsed.rest) addSubItem(existing.id, parsed.rest);
       state.activeDayId = existing.id;
-      if (!parsed.rest) flash(`Now adding to ${capFirst(parsed.day)}`);
+
     } else {
       addDayGroup(parsed.day, parsed.rest||null);
     }
@@ -731,7 +714,6 @@ function processVoiceItem(text) {
 function addRegularItem(text) {
   const t = capFirst(text);
   mutateItems(items => [...items, {id:uid(),type:'item',text:t,checked:false}]);
-  state.activeDayId = null;
   flash(`Added "${t}"`);
 }
 function addDayGroup(day, firstItem) {
@@ -826,9 +808,11 @@ micBtn.addEventListener('click', () => {
     itemVoice.stop();
     itemVoice.stopWave();
     setMicActive(false);
+    state.activeDayId = null;
   } else {
     keepListening = true;
     lastFinalText = '';
+    state.activeDayId = null;
     setMicActive(true);
     startItemListening();
   }
@@ -860,9 +844,7 @@ document.getElementById('back-btn').addEventListener('click', () => {
   renderHome(); showScreen('screen-home');
 });
 
-document.getElementById('day-banner-exit').addEventListener('click', () => {
-  state.activeDayId = null; renderDetail();
-});
+
 
 // ═══════════════════════════════════════
 //  RENAME
