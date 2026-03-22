@@ -1,4 +1,4 @@
-const CACHE = 'voice-lists-v1';
+const CACHE = 'voxlist-v1';
 const ASSETS = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', e => {

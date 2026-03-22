@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <meta name="theme-color" content="#0e0e1a"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
-<title>Voice Lists</title>
+<title>Voxlist</title>
 <link rel="manifest" href="manifest.json"/>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
 <style>
@@ -140,6 +140,9 @@
   @keyframes slideIn  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
   @keyframes fadeUp   { from{opacity:0;transform:translateX(-50%) translateY(8px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
   @keyframes pulseRing { 0%{opacity:0.5;transform:scale(0.9)} 100%{opacity:0;transform:scale(1.6)} }
+  @keyframes todayPulse { 0%,100%{box-shadow:0 0 0 0 rgba(22,163,74,0.4)} 50%{box-shadow:0 0 0 6px rgba(22,163,74,0)} }
+  .today-group { animation:todayPulse 2.5s ease-in-out infinite; }
+  .today-group .day-header { border-left: 3px solid #16a34a; }
 </style>
 </head>
 <body>
@@ -148,7 +151,7 @@
   <!-- HOME -->
   <div class="screen active" id="screen-home">
     <div class="header">
-      <div class="label">Voice Lists</div>
+      <div class="label">Voxlist</div>
       <div class="title">My Lists</div>
     </div>
     <div class="scroll" id="home-scroll"></div>
@@ -225,7 +228,7 @@
 // ═══════════════════════════════════════
 //  CONSTANTS
 // ═══════════════════════════════════════
-const STORAGE_KEY = 'voice-lists-v1';
+const STORAGE_KEY = 'voxlist-v1';
 const ACCENT_COLORS = [
   '#7c3aed','#4f46e5','#0891b2','#0d9488',
   '#16a34a','#ca8a04','#dc2626','#db2777',
@@ -362,10 +365,11 @@ function dateGroupLabel(dateKey){
   if(diff===0) return 'Today';
   if(diff===1) return 'Tomorrow';
   if(diff===-1) return 'Yesterday';
-  // Within 7 days either direction — just day name
+  // Future within 7 days — just day name (clear enough)
   if(diff>1 && diff<=7) return fullDayName(d);
-  if(diff<-1 && diff>=-7) return fullDayName(d);
-  // Beyond 7 days — day name + date
+  // Past — always show date so it's distinct from day-of-week groups
+  if(diff<-1) return `${dayName(d)} ${d.getDate()} ${months[d.getMonth()]}`;
+  // Beyond 7 days future — day name + date
   return `${dayName(d)} ${d.getDate()} ${months[d.getMonth()]}`;
 }
 function nextWeekdayDate(dayName){
@@ -663,8 +667,9 @@ function renderItems(){
         groupLabel=item.day;
       }
       const gDone=(item.items||[]).filter(si=>si.checked).length;
+      const isTodayGroup=isDateGrp&&daysDiff(item.dateKey)===0;
       html+=`
-        <div class="day-group" data-gid="${item.id}" style="border-color:${dc.border}">
+        <div class="day-group${isTodayGroup?' today-group':''}" data-gid="${item.id}" style="border-color:${dc.border}">
           <div class="day-header" style="background:${dc.light}" data-collapse="${item.id}">
             <div class="day-dot" style="background:${dc.bg}"></div>
             <span class="day-label" style="color:${dc.bg}">${groupLabel}</span>
@@ -846,11 +851,12 @@ function reorderItems(){
     // Date groups (have dateKey) — sorted: today first, future asc, past desc
     const dateGroups=items.filter(i=>i.type==='day-group'&&i.dateKey).sort((a,b)=>{
       const da=daysDiff(a.dateKey), db=daysDiff(b.dateKey);
-      // Today (0) first, then future (+) asc, then past (-) desc
+      // Order: yesterday(-1), today(0), tomorrow(+1), future asc, then older past desc
       function rank(d){
-        if(d===0)return 0;
-        if(d>0)return d;       // 1,2,3... future
-        return 1000+Math.abs(d); // past goes to bottom
+        if(d===-1)return 0;    // yesterday first
+        if(d===0) return 1;    // today second
+        if(d>0)   return 1+d;  // tomorrow=2, day after=3, future ascending
+        return 1000+Math.abs(d); // past beyond yesterday at bottom, oldest last
       }
       return rank(da)-rank(db);
     });

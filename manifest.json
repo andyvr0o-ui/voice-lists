@@ -1,13 +1,13 @@
 {
-  "name": "Voice Lists",
-  "short_name": "Voice Lists",
-  "description": "Voice-powered list making app",
+  "name": "Voxlist",
+  "short_name": "Voxlist",
+  "description": "Voice-powered smart lists",
   "theme_color": "#0e0e1a",
   "background_color": "#0e0e1a",
   "display": "standalone",
   "orientation": "portrait",
-  "start_url": "/voice-lists/",
-  "scope": "/voice-lists/",
+  "start_url": "/voxlist/",
+  "scope": "/voxlist/",
   "icons": [
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
     { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
