@@ -1261,16 +1261,50 @@ function processVoiceItem(text){
   const list=currentList();if(!list)return;
 
   if(parsed.isMeal){
-    const existing=list.items?.find(i=>i.type==='meal-group'&&i.meal===parsed.meal);
-    if(existing){
-      if(parsed.rest){
-        // Always add as a new dish to the meal group
-        addDishToMeal(existing.id, parsed.rest);
-      }
-      state.activeDayId=existing.id;
-    } else {
-      addMealGroup(parsed.meal, parsed.rest||null);
+    // Check for standalone meal-group first
+    const existingMealGroup=list.items?.find(i=>i.type==='meal-group'&&i.meal===parsed.meal);
+    if(existingMealGroup){
+      if(parsed.rest) addDishToMeal(existingMealGroup.id, parsed.rest);
+      state.activeDayId=existingMealGroup.id;
+      renderDetail();
+      return;
     }
+    // Check for meal-container inside any day/date group (active day first)
+    let container=null, containerDayId=null;
+    // Check active day group first
+    if(state.activeDayId){
+      const activeDay=list.items?.find(i=>i.id===state.activeDayId&&i.type==='day-group');
+      if(activeDay){
+        container=(activeDay.items||[]).find(si=>si.type==='meal-container'&&si.meal===parsed.meal);
+        if(container) containerDayId=activeDay.id;
+      }
+    }
+    // If not found in active day, search all day groups
+    if(!container){
+      for(const dayGrp of list.items?.filter(i=>i.type==='day-group')||[]){
+        const found=(dayGrp.items||[]).find(si=>si.type==='meal-container'&&si.meal===parsed.meal);
+        if(found){container=found;containerDayId=dayGrp.id;break;}
+      }
+    }
+    if(container&&containerDayId){
+      if(parsed.rest){
+        const newDish=makeDish(parsed.rest);
+        mutateItems(items=>items.map(i=>{
+          if(i.id!==containerDayId) return i;
+          return{...i,items:(i.items||[]).map(si=>
+            si.id===container.id?{...si,dishes:[...(si.dishes||[]),newDish]}:si
+          )};
+        }));
+        saveData();
+        autoSearchForDish(container.id, containerDayId, newDish.id, parsed.rest);
+        flash(`Added "${capFirst(parsed.rest)}" to ${capFirst(parsed.meal)}`);
+      }
+      state.activeDayId=containerDayId;
+      renderDetail();
+      return;
+    }
+    // No existing group or container — create standalone meal-group
+    addMealGroup(parsed.meal, parsed.rest||null);
     renderDetail();
     return;
   }
