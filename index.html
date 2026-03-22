@@ -148,8 +148,9 @@
   .meal-recipe-name { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.5); max-width: 120px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .meal-count { font-size: 12px; color: var(--muted); font-weight: 600; }
   .meal-del { background: none; border: none; color: rgba(255,255,255,0.2); cursor: pointer; padding: 2px 4px; margin-left: 2px; display: flex; align-items: center; }
-  .meal-sparkle { background: none; border: none; cursor: pointer; padding: 2px 6px; font-size: 15px; display: flex; align-items: center; opacity: 0.7; }
+  .meal-sparkle { background: none; border: none; cursor: pointer; padding: 2px 6px; font-size: 13px; font-weight: 700; font-family: inherit; display: flex; align-items: center; gap: 3px; opacity: 0.7; color: rgba(255,255,255,0.6); border-radius: 8px; transition: all 0.2s; }
   .meal-sparkle:active { opacity: 1; }
+  .meal-sparkle.found { opacity: 1; color: #16a34a; background: rgba(22,163,74,0.12); border: 1px solid rgba(22,163,74,0.3); padding: 2px 8px; }
   .meal-body { background: rgba(255,255,255,0.02); padding: 6px 8px 8px; }
   /* ── Recipe finder overlay ── */
   .recipe-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 150; display: flex; flex-direction: column; padding-top: var(--safe-top); }
@@ -183,6 +184,10 @@
   .method-step { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
   .method-step-num { width: 24px; height: 24px; border-radius: 50%; background: rgba(139,92,246,0.2); border: 1px solid rgba(139,92,246,0.4); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #a78bfa; flex-shrink: 0; margin-top: 1px; }
   .method-step-text { flex: 1; font-size: 15px; font-weight: 600; line-height: 1.5; color: rgba(255,255,255,0.85); }
+  .recipe-url-section { margin: 8px 16px 0; }
+  .recipe-url-toggle { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.35); cursor: pointer; padding: 8px 0; list-style: none; }
+  .recipe-url-toggle::-webkit-details-marker { display: none; }
+  .recipe-url-section[open] .recipe-url-toggle { color: rgba(255,255,255,0.55); }
   @keyframes slideIn  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
   @keyframes fadeUp   { from{opacity:0;transform:translateX(-50%) translateY(8px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
   @keyframes pulseRing { 0%{opacity:0.5;transform:scale(0.9)} 100%{opacity:0;transform:scale(1.6)} }
@@ -270,10 +275,13 @@
       Close
     </button>
   </div>
-  <div class="recipe-url-row">
-    <input class="recipe-url-input" id="recipe-url-input" placeholder="Paste a recipe URL…" type="url"/>
-    <button class="recipe-fetch-btn" id="recipe-fetch-btn">Fetch</button>
-  </div>
+  <details class="recipe-url-section">
+    <summary class="recipe-url-toggle">Or paste a recipe URL manually</summary>
+    <div class="recipe-url-row">
+      <input class="recipe-url-input" id="recipe-url-input" placeholder="Paste a recipe URL…" type="url"/>
+      <button class="recipe-fetch-btn" id="recipe-fetch-btn">Fetch</button>
+    </div>
+  </details>
   <div class="recipe-status" id="recipe-status">Paste a recipe URL from BBC Good Food, AllRecipes, Jamie Oliver and more</div>
   <div class="recipe-preview" id="recipe-preview"></div>
 </div>
@@ -743,7 +751,7 @@ function renderItems(){
             <span class="meal-label" style="color:${mc.bg}">${item.meal}</span>
             ${hasRecipe?`<span class="meal-recipe-name">${esc(item.recipe.name)}</span>`:''}
             <span class="meal-count">${mDone}/${(item.items||[]).length}</span>
-            <button class="meal-sparkle" data-meal-recipe="${item.id}" title="Find recipe">✨</button>
+            <button class="meal-sparkle${item.recipeSearch?' found':''}" data-meal-recipe="${item.id}" title="${item.recipeSearch?'Recipe found — tap to add':'Find recipe'}">${item.recipeSearch?'✨ Found':'✨'}</button>
             <span style="color:rgba(255,255,255,0.3);display:flex" data-meal-collapse="${item.id}">${item.collapsed?SVG.chevD:SVG.chevU}</span>
             <button class="meal-del" data-mdel="${item.id}">${SVG.close}</button>
           </div>
@@ -1023,7 +1031,13 @@ function processVoiceItem(text){
   if(parsed.isMeal){
     const existing=list.items?.find(i=>i.type==='meal-group'&&i.meal===parsed.meal);
     if(existing){
-      if(parsed.rest)addSubItem(existing.id,parsed.rest);
+      if(parsed.rest){
+        addSubItem(existing.id,parsed.rest);
+        // If no recipe yet, try auto-searching with the new dish name
+        if(!existing.recipeSearch&&!existing.recipe){
+          autoSearchMealDB(existing.id, parsed.rest);
+        }
+      }
       state.activeDayId=existing.id;
     } else {
       addMealGroup(parsed.meal,parsed.rest||null);
@@ -1062,9 +1076,61 @@ function processVoiceItem(text){
 function addMealGroup(meal, firstItem){
   const gid=uid();
   const subItems=firstItem?[{id:uid(),text:capFirst(firstItem),checked:false}]:[];
-  mutateItems(items=>[...items,{id:gid,type:'meal-group',meal,collapsed:false,items:subItems,recipe:null}]);
+  mutateItems(items=>[...items,{id:gid,type:'meal-group',meal,collapsed:false,items:subItems,recipe:null,recipeSearch:null}]);
   state.activeDayId=gid;
   flash(`Added ${capFirst(meal)}${firstItem?` · "${capFirst(firstItem)}"`:''}`);
+  // Auto-search TheMealDB if a dish name was given
+  if(firstItem){
+    autoSearchMealDB(gid, firstItem);
+  }
+}
+
+async function autoSearchMealDB(gid, dishName){
+  try {
+    const query=encodeURIComponent(dishName.trim());
+    const res=await fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${query}`);
+    const data=await res.json();
+    const meals=data.meals;
+    if(!meals||!meals.length) return; // nothing found silently
+    // Pick the best match — first result
+    const meal=meals[0];
+    const recipe=parseMealDBResult(meal);
+    // Store on the group as a pending recipe suggestion
+    mutateItems(items=>items.map(i=>i.id===gid?{...i,recipeSearch:recipe}:i));
+    // Flash a prompt
+    flash(`Recipe found for "${recipe.name}" — tap ✨`);
+    renderDetail();
+  } catch(e){
+    // Silently fail — user can still paste URL manually
+  }
+}
+
+function parseMealDBResult(meal){
+  const name=meal.strMeal||'Recipe';
+  // Extract ingredients — MealDB uses strIngredient1..20 and strMeasure1..20
+  const ingredients=[];
+  for(let i=1;i<=20;i++){
+    const ing=meal[`strIngredient${i}`];
+    const meas=meal[`strMeasure${i}`];
+    if(ing&&ing.trim()){
+      const measure=(meas&&meas.trim())?meas.trim()+' ':'';
+      ingredients.push(measure+ing.trim());
+    }
+  }
+  // Extract steps — MealDB gives instructions as one block
+  const steps=(meal.strInstructions||'')
+    .split(/\r?\n+/)
+    .map(s=>s.trim())
+    .filter(s=>s.length>10);
+  return{
+    name,
+    ingredients,
+    servings:null,
+    totalTime:null,
+    steps,
+    thumb:meal.strMealThumb||null,
+    source:'themealdb'
+  };
 }
 function addRegularItem(text){
   const t=capFirst(text);
@@ -1233,12 +1299,43 @@ function openRecipeOverlay(gid){
   activeRecipeGroupId=gid;
   const list=currentList();
   const group=list?.items?.find(i=>i.id===gid);
-  const title=group?`${capFirst(group.meal)} — Find Recipe`:'Find Recipe';
+  const title=group?`${capFirst(group.meal)} — Recipe`:'Find Recipe';
   document.getElementById('recipe-overlay-title').textContent=title;
   recipeUrlInput.value='';
   recipePreview.innerHTML='';
-  recipeStatus.textContent='Paste a recipe URL from BBC Good Food, AllRecipes, Jamie Oliver and more';
   recipeOverlay.style.display='flex';
+
+  // If auto-search already found a recipe, show it immediately
+  if(group?.recipeSearch){
+    recipeStatus.textContent='';
+    showRecipePreview(group.recipeSearch);
+  } else {
+    recipeStatus.textContent='Searching for recipe…';
+    // Try searching by group items text if available
+    const dishName=group?.items?.[0]?.text||'';
+    if(dishName){
+      searchMealDBAndShow(dishName);
+    } else {
+      recipeStatus.textContent='Paste a recipe URL from BBC Good Food, AllRecipes, Jamie Oliver and more';
+    }
+  }
+}
+
+async function searchMealDBAndShow(dishName){
+  try {
+    const query=encodeURIComponent(dishName.trim());
+    const res=await fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${query}`);
+    const data=await res.json();
+    const meals=data.meals;
+    if(!meals||!meals.length){
+      recipeStatus.textContent='No recipe found automatically. Paste a URL below to try manually.';
+      return;
+    }
+    const recipe=parseMealDBResult(meals[0]);
+    showRecipePreview(recipe);
+  } catch(e){
+    recipeStatus.textContent='Could not search. Paste a URL below to try manually.';
+  }
 }
 
 recipeFetchBtn.addEventListener('click', ()=>{
