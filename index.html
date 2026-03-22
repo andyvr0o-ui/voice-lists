@@ -547,6 +547,18 @@ function parseVoice(text){
   for(const day of DAYS){
     if(lower.startsWith(day)){
       const rest=trimmed.slice(day.length).trim();
+      const restLower=rest.toLowerCase();
+      // Check if rest starts with a meal word -> day+meal combo
+      for(const meal of ['lunch','dinner']){
+        if(restLower.startsWith(meal)){
+          const dishRest=capFirst(rest.slice(meal.length).trim());
+          if(isTomorrow(day)){
+            const t=new Date(today);t.setDate(today.getDate()+1);
+            return{isDateGroup:true,dateKey:dateToKey(t),rest:null,nestedMeal:meal,nestedDish:dishRest};
+          }
+          return{isDay:true,day,rest:null,nestedMeal:meal,nestedDish:dishRest};
+        }
+      }
       if(isTomorrow(day)){
         // This day IS tomorrow — treat as date group
         const t=new Date(today);t.setDate(today.getDate()+1);
@@ -577,7 +589,15 @@ function countItems(items=[]){
   let total=0,done=0;
   for(const item of items){
     if(item.type==='item'){total++;if(item.checked)done++;}
-    else if(item.type==='day-group'){for(const si of item.items||[]){total++;if(si.checked)done++;}}
+    else if(item.type==='day-group'||item.type==='meal-group'){
+      for(const si of item.items||[]){total++;if(si.checked)done++;}
+      // Also count nested meal groups inside day groups
+      for(const si of item.items||[]){
+        if(si.type==='meal-group'){
+          for(const mi of si.items||[]){total++;if(mi.checked)done++;}
+        }
+      }
+    }
   }
   return{total,done};
 }
@@ -758,7 +778,33 @@ function renderItems(){
           ${!item.collapsed?`
           <div class="day-body">
             ${!(item.items||[]).length?'<div class="day-empty">No items yet — speak to add, or find a recipe ✨</div>':
-              (item.items||[]).map(si=>`
+              (item.items||[]).map(si=>{
+                if(si.type==='nested-meal'){
+                  const nmc=MEAL_COLORS[si.meal]||MEAL_COLORS.dinner;
+                  const nDone=(si.items||[]).filter(x=>x.checked).length;
+                  return `<div style="border:1px solid ${nmc.border};background:rgba(0,0,0,0.12);border-radius:10px;margin-bottom:5px;overflow:hidden;">
+                    <div style="background:${nmc.light};display:flex;align-items:center;gap:8px;padding:8px 10px;">
+                      <div style="width:6px;height:6px;border-radius:50%;background:${nmc.bg};flex-shrink:0"></div>
+                      <span style="font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:${nmc.bg};flex:1">${si.meal}</span>
+                      ${si.recipe?`<span style="font-size:11px;color:rgba(255,255,255,0.4);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(si.recipe.name)}</span>`:''}
+                      <span style="font-size:11px;color:rgba(255,255,255,0.4)">${nDone}/${(si.items||[]).length}</span>
+                      <button style="background:none;border:none;cursor:pointer;padding:1px 4px;font-size:12px;font-family:inherit;color:${si.recipeSearch?'#16a34a':'rgba(255,255,255,0.4)'};" data-nested-recipe="${si.id}" data-day-gid="${item.id}">${si.recipeSearch?'✨ Found':'✨'}</button>
+                      <button style="background:none;border:none;color:rgba(255,255,255,0.2);cursor:pointer;padding:0 4px;display:flex;" data-nested-del="${si.id}" data-gid="${item.id}">${SVG.close}</button>
+                    </div>
+                    <div style="padding:4px 6px 6px;">
+                      ${!(si.items||[]).length?'<div class="day-empty">No items</div>':
+                        (si.items||[]).map(mi=>`
+                        <div class="sub-row ${mi.checked?'checked':''}" style="margin-bottom:3px;">
+                          <div class="sub-checkbox" style="${mi.checked?`background:${nmc.bg};border:none`:`border:2px solid ${nmc.bg}66;background:transparent`}" data-nested-toggle="${mi.id}" data-nested-gid="${si.id}" data-day-gid="${item.id}">
+                            ${mi.checked?`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`:''}
+                          </div>
+                          <span class="sub-text ${mi.checked?'done':''}">${esc(mi.text)}</span>
+                          <button style="background:none;border:none;color:rgba(255,255,255,0.15);cursor:pointer;padding:0 4px;display:flex;" data-nested-item-del="${mi.id}" data-nested-gid="${si.id}" data-day-gid="${item.id}">${SVG.close}</button>
+                        </div>`).join('')}
+                    </div>
+                  </div>`;
+                }
+                return `
               <div class="sub-row ${si.checked?'checked':''}" data-sid="${si.id}" data-parent="${item.id}" draggable="true">
                 <div class="drag-handle">${SVG.grip}</div>
                 <div class="sub-checkbox" style="${si.checked?`background:${mc.bg};border:none`:`border:2px solid ${mc.bg}66;background:transparent`}" data-subtoggle="${si.id}" data-gid="${item.id}">
@@ -766,7 +812,8 @@ function renderItems(){
                 </div>
                 <span class="sub-text ${si.checked?'done':''}">${esc(si.text)}</span>
                 <button class="sub-del" data-subdel="${si.id}" data-gid="${item.id}">${SVG.close}</button>
-              </div>`).join('')}
+              </div>`;
+              }).join('')}
           </div>`:''}
         </div>`;
     } else if(item.type==='item'){
@@ -857,6 +904,44 @@ function wireItemEvents(scroll){
   scroll.querySelectorAll('[data-gdel]').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();deleteItem(el.dataset.gdel);}));
   scroll.querySelectorAll('[data-subtoggle]').forEach(el=>el.addEventListener('click',()=>toggleSubItem(el.dataset.gid,el.dataset.subtoggle)));
   scroll.querySelectorAll('[data-subdel]').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();deleteSubItem(el.dataset.gid,el.dataset.subdel);}));
+  // Nested meal events
+  scroll.querySelectorAll('[data-nested-toggle]').forEach(el=>el.addEventListener('click',()=>{
+    const dayGid=el.dataset.dayGid, nGid=el.dataset.nestedGid, mid=el.dataset.nestedToggle;
+    mutateItems(items=>items.map(i=>{
+      if(i.id!==dayGid)return i;
+      return{...i,items:(i.items||[]).map(si=>{
+        if(si.id!==nGid)return si;
+        return{...si,items:(si.items||[]).map(mi=>mi.id===mid?{...mi,checked:!mi.checked}:mi)};
+      })};
+    }));
+    renderItems(); updateProgress();
+  }));
+  scroll.querySelectorAll('[data-nested-item-del]').forEach(el=>el.addEventListener('click',e=>{
+    e.stopPropagation();
+    const dayGid=el.dataset.dayGid, nGid=el.dataset.nestedGid, mid=el.dataset.nestedItemDel;
+    mutateItems(items=>items.map(i=>{
+      if(i.id!==dayGid)return i;
+      return{...i,items:(i.items||[]).map(si=>{
+        if(si.id!==nGid)return si;
+        return{...si,items:(si.items||[]).filter(mi=>mi.id!==mid)};
+      })};
+    }));
+    renderItems(); updateProgress();
+  }));
+  scroll.querySelectorAll('[data-nested-del]').forEach(el=>el.addEventListener('click',e=>{
+    e.stopPropagation();
+    const dayGid=el.dataset.gid, nGid=el.dataset.nestedDel;
+    mutateItems(items=>items.map(i=>{
+      if(i.id!==dayGid)return i;
+      return{...i,items:(i.items||[]).filter(si=>si.id!==nGid)};
+    }));
+    renderItems(); updateProgress();
+  }));
+  scroll.querySelectorAll('[data-nested-recipe]').forEach(el=>el.addEventListener('click',e=>{
+    e.stopPropagation();
+    const dayGid=el.dataset.dayGid, nGid=el.dataset.nestedRecipe;
+    openNestedRecipeOverlay(dayGid, nGid);
+  }));
   const cb=document.getElementById('clear-btn');
   if(cb)cb.addEventListener('click',clearChecked);
 }
@@ -1000,6 +1085,90 @@ function updateProgress(){
   else prog.style.display='none';
 }
 
+// ── Nested meal helpers ──
+function addNestedMealToDay(dayGid, meal, dish){
+  // Find or create meal sub-group inside a day group
+  const list=currentList(); if(!list) return;
+  const dayGroup=list.items?.find(i=>i.id===dayGid);
+  if(!dayGroup) return;
+  // Look for existing meal nested inside this day
+  const existingMeal=(dayGroup.items||[]).find(i=>i.type==='nested-meal'&&i.meal===meal);
+  if(existingMeal){
+    if(dish){
+      // Add dish to existing nested meal
+      mutateItems(items=>items.map(i=>{
+        if(i.id!==dayGid) return i;
+        return{...i,items:(i.items||[]).map(si=>{
+          if(si.id!==existingMeal.id) return si;
+          return{...si,items:[...(si.items||[]),{id:uid(),text:dish,checked:false}]};
+        })};
+      }));
+      saveData();
+      if(dish) autoSearchMealDB(existingMeal.id+'_nested', dish);
+    }
+    state.activeDayId=dayGid;
+  } else {
+    // Create new nested meal inside day group
+    const mid=uid();
+    const subItems=dish?[{id:uid(),text:dish,checked:false}]:[];
+    mutateItems(items=>items.map(i=>{
+      if(i.id!==dayGid) return i;
+      return{...i,items:[...(i.items||[]),{id:mid,type:'nested-meal',meal,items:subItems,collapsed:false,recipe:null,recipeSearch:null}]};
+    }));
+    saveData();
+    if(dish) autoSearchNestedMeal(dayGid, mid, dish);
+    state.activeDayId=dayGid;
+    flash(`Added ${capFirst(meal)} to ${capFirst(dayGroup.day||dateGroupLabel(dayGroup.dateKey))}`);
+  }
+  reorderItems();
+  renderDetail();
+}
+
+async function autoSearchNestedMeal(dayGid, mid, dishName){
+  try {
+    const query=encodeURIComponent(dishName.trim());
+    const res=await fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${query}`);
+    const data=await res.json();
+    const meals=data.meals;
+    if(!meals||!meals.length) return;
+    const recipe=parseMealDBResult(meals[0]);
+    // Store recipe on nested meal
+    mutateItems(items=>items.map(i=>{
+      if(i.id!==dayGid) return i;
+      return{...i,items:(i.items||[]).map(si=>{
+        if(si.id!==mid) return si;
+        return{...si,recipeSearch:recipe};
+      })};
+    }));
+    flash(`Recipe found for "${recipe.name}" — tap ✨`);
+    renderDetail();
+  } catch(e){}
+}
+
+function addDayGroupWithMeal(day, meal, dish){
+  const gid=uid();
+  const mid=uid();
+  const subItems=dish?[{id:uid(),text:dish,checked:false}]:[];
+  const nestedMeal={id:mid,type:'nested-meal',meal,items:subItems,collapsed:false,recipe:null,recipeSearch:null};
+  mutateItems(items=>[...items,{id:gid,type:'day-group',day,collapsed:false,items:[nestedMeal]}]);
+  state.activeDayId=gid;
+  if(dish) autoSearchNestedMeal(gid, mid, dish);
+  flash(`Added ${capFirst(day)} · ${capFirst(meal)}${dish?` · "${dish}"`:''}` );
+  reorderItems();
+}
+
+function addDateGroupWithMeal(dateKey, meal, dish){
+  const gid=uid();
+  const mid=uid();
+  const subItems=dish?[{id:uid(),text:dish,checked:false}]:[];
+  const nestedMeal={id:mid,type:'nested-meal',meal,items:subItems,collapsed:false,recipe:null,recipeSearch:null};
+  mutateItems(items=>[...items,{id:gid,type:'day-group',dateKey,collapsed:false,items:[nestedMeal]}]);
+  state.activeDayId=gid;
+  if(dish) autoSearchNestedMeal(gid, mid, dish);
+  flash(`Added ${dateGroupLabel(dateKey)} · ${capFirst(meal)}${dish?` · "${dish}"`:''}` );
+  reorderItems();
+}
+
 function reorderItems(){
   mutateItems(items=>{
     // Date groups (have dateKey) — sorted: today first, future asc, past desc
@@ -1032,10 +1201,24 @@ function processVoiceItem(text){
     const existing=list.items?.find(i=>i.type==='meal-group'&&i.meal===parsed.meal);
     if(existing){
       if(parsed.rest){
-        addSubItem(existing.id,parsed.rest);
-        // If no recipe yet, try auto-searching with the new dish name
-        if(!existing.recipeSearch&&!existing.recipe){
-          autoSearchMealDB(existing.id, parsed.rest);
+        if(existing.recipe){
+          // Already has a recipe loaded — "Dinner Salmon" means a new dish
+          // Add as a nested dish entry within the meal group
+          const nid=uid();
+          const newDish={id:nid,type:'nested-meal',meal:parsed.meal,
+            items:[{id:uid(),text:parsed.rest,checked:false}],
+            collapsed:false,recipe:null,recipeSearch:null};
+          mutateItems(items=>items.map(i=>i.id===existing.id
+            ?{...i,items:[...(i.items||[]),newDish]}:i));
+          saveData();
+          autoSearchNestedMeal(existing.id, nid, parsed.rest);
+          flash(`Added "${capFirst(parsed.rest)}" to ${capFirst(parsed.meal)}`);
+        } else {
+          // No recipe yet — add as ingredient/item and search
+          addSubItem(existing.id,parsed.rest);
+          if(!existing.recipeSearch){
+            autoSearchMealDB(existing.id, parsed.rest);
+          }
         }
       }
       state.activeDayId=existing.id;
@@ -1049,21 +1232,38 @@ function processVoiceItem(text){
   if(parsed.isDateGroup){
     // today/tomorrow/yesterday/next wednesday
     const existing=list.items?.find(i=>i.type==='day-group'&&i.dateKey===parsed.dateKey);
-    if(existing){
-      if(parsed.rest)addSubItem(existing.id,parsed.rest);
-      state.activeDayId=existing.id;
-      reorderItems();
+    if(parsed.nestedMeal){
+      if(existing){
+        addNestedMealToDay(existing.id, parsed.nestedMeal, parsed.nestedDish);
+      } else {
+        addDateGroupWithMeal(parsed.dateKey, parsed.nestedMeal, parsed.nestedDish);
+      }
     } else {
-      addDateGroup(parsed.dateKey,parsed.rest||null);
+      if(existing){
+        if(parsed.rest)addSubItem(existing.id,parsed.rest);
+        state.activeDayId=existing.id;
+        reorderItems();
+      } else {
+        addDateGroup(parsed.dateKey,parsed.rest||null);
+      }
     }
   } else if(parsed.isDay){
     const existing=list.items?.find(i=>i.type==='day-group'&&i.day===parsed.day&&!i.dateKey);
-    if(existing){
-      if(parsed.rest)addSubItem(existing.id,parsed.rest);
-      state.activeDayId=existing.id;
-      reorderItems();
+    if(parsed.nestedMeal){
+      // "Monday dinner salmon" — add/find day group, add meal inside it
+      if(existing){
+        addNestedMealToDay(existing.id, parsed.nestedMeal, parsed.nestedDish);
+      } else {
+        addDayGroupWithMeal(parsed.day, parsed.nestedMeal, parsed.nestedDish);
+      }
     } else {
-      addDayGroup(parsed.day,parsed.rest||null);
+      if(existing){
+        if(parsed.rest)addSubItem(existing.id,parsed.rest);
+        state.activeDayId=existing.id;
+        reorderItems();
+      } else {
+        addDayGroup(parsed.day,parsed.rest||null);
+      }
     }
   } else if(state.activeDayId){
     addSubItem(state.activeDayId,parsed.text);
@@ -1295,6 +1495,31 @@ document.getElementById('recipe-overlay-close').addEventListener('click', ()=>{
   recipeStatus.textContent='Paste a recipe URL from BBC Good Food, AllRecipes, Jamie Oliver and more';
 });
 
+function openNestedRecipeOverlay(dayGid, nGid){
+  // Store both ids so addRecipeToGroup can find the nested meal
+  activeRecipeGroupId=null;
+  activeNestedRecipeIds={dayGid,nGid};
+  const list=currentList();
+  const dayGroup=list?.items?.find(i=>i.id===dayGid);
+  const nested=dayGroup?.items?.find(si=>si.id===nGid);
+  document.getElementById('recipe-overlay-title').textContent=`${capFirst(nested?.meal||'Meal')} — Recipe`;
+  recipeUrlInput.value='';
+  recipePreview.innerHTML='';
+  recipeOverlay.style.display='flex';
+  if(nested?.recipeSearch){
+    recipeStatus.textContent='';
+    showRecipePreview(nested.recipeSearch);
+  } else {
+    const dishName=nested?.items?.[0]?.text||'';
+    if(dishName){
+      recipeStatus.textContent='Searching…';
+      searchMealDBAndShow(dishName);
+    } else {
+      recipeStatus.textContent='Paste a recipe URL below';
+    }
+  }
+}
+
 function openRecipeOverlay(gid){
   activeRecipeGroupId=gid;
   const list=currentList();
@@ -1475,6 +1700,24 @@ function showRecipePreview(recipe){
 }
 
 function addRecipeToGroup(recipe){
+  // Handle nested meal recipe
+  if(activeNestedRecipeIds){
+    const{dayGid,nGid}=activeNestedRecipeIds;
+    mutateItems(items=>items.map(i=>{
+      if(i.id!==dayGid)return i;
+      return{...i,items:(i.items||[]).map(si=>{
+        if(si.id!==nGid)return si;
+        const subItems=recipe.ingredients.map(ing=>({id:uid(),text:ing,checked:false}));
+        return{...si,items:subItems,recipe:{name:recipe.name,servings:recipe.servings,totalTime:recipe.totalTime,steps:recipe.steps}};
+      })};
+    }));
+    saveData();
+    recipeOverlay.style.display='none';
+    activeNestedRecipeIds=null;
+    flash('Recipe added!');
+    renderDetail();
+    return;
+  }
   if(!activeRecipeGroupId)return;
   // Replace sub-items with ingredients, store recipe data
   mutateItems(items=>items.map(i=>{
