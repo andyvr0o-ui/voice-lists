@@ -26,7 +26,6 @@
   }
   html, body { height: 100%; background: var(--bg); font-family: 'Nunito', sans-serif; color: var(--text); overflow: hidden; }
   #app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
-
   .screen { display: none; flex-direction: column; flex: 1; overflow: hidden; padding-top: var(--safe-top); }
   .screen.active { display: flex; }
   .scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 8px 16px 16px; }
@@ -36,39 +35,32 @@
   .title { font-size: 28px; font-weight: 900; letter-spacing: -0.5px; margin-top: 4px; }
   .bottom-bar { flex-shrink: 0; padding: 16px 24px; padding-bottom: calc(20px + var(--safe-bottom)); background: rgba(255,255,255,0.02); border-top: 1px solid var(--border); display: flex; justify-content: center; align-items: center; }
 
-  /* ── SVG icon helper ── */
-  .icon { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .icon svg { display: block; }
-
   /* ── List cards ── */
-  .list-card {
-    display: flex; align-items: center; gap: 14px;
-    padding: 16px 16px 16px 0;
-    margin-bottom: 10px;
-    background: var(--surface);
-    border-radius: 16px;
-    border: 1px solid var(--border);
-    border-left: 4px solid var(--card-accent, var(--purple));
-    cursor: pointer; transition: background 0.15s; position: relative;
-    overflow: hidden;
-  }
+  .list-card { display: flex; align-items: center; gap: 14px; padding: 16px 16px 16px 0; margin-bottom: 10px; background: var(--surface); border-radius: 16px; border: 1px solid var(--border); border-left: 4px solid var(--card-accent, var(--purple)); cursor: pointer; transition: background 0.15s; position: relative; overflow: hidden; }
   .list-card:active { background: var(--surface2); }
-  .list-icon-wrap { width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; margin-left: 12px; }
+  .list-icon-wrap { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-left: 14px; }
   .list-info { flex: 1; min-width: 0; }
   .list-name { font-size: 17px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .list-meta { font-size: 13px; color: var(--muted); margin-top: 3px; font-weight: 600; }
   .list-progress { margin-top: 8px; height: 3px; background: rgba(255,255,255,0.07); border-radius: 4px; overflow: hidden; }
   .list-progress-fill { height: 100%; border-radius: 4px; transition: width 0.4s; }
-  .list-del { background: none; border: none; color: rgba(255,255,255,0.25); cursor: pointer; padding: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-  .list-del:active svg { stroke: rgba(239,68,68,0.8); }
+  .list-del { background: none; border: none; color: rgba(255,255,255,0.25); cursor: pointer; padding: 8px; flex-shrink: 0; display: flex; align-items: center; }
 
-  /* ── FAB ── */
-  .fab { width: 56px; height: 56px; border-radius: 50%; border: none; background: linear-gradient(135deg, var(--purple), var(--purple2)); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 28px rgba(124,58,237,0.45), 0 8px 20px rgba(0,0,0,0.4); transition: transform 0.15s; }
-  .fab:active { transform: scale(0.94); }
+  /* ── FAB — rounded rect ── */
+  .fab { display: flex; align-items: center; justify-content: center; gap: 8px; height: 48px; padding: 0 24px; border-radius: 14px; border: none; background: linear-gradient(135deg, var(--purple), var(--purple2)); color: #fff; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 0 24px rgba(124,58,237,0.35), 0 4px 14px rgba(0,0,0,0.3); transition: transform 0.15s; }
+  .fab:active { transform: scale(0.97); }
+
+  /* ── Mic button — rounded rect, icon only ── */
+  .mic-btn { display: flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 16px; border: none; font-family: inherit; cursor: pointer; transition: all 0.2s; position: relative; z-index: 1; }
+  .mic-btn.idle   { background: linear-gradient(135deg, var(--purple), var(--purple2)); box-shadow: 0 0 22px rgba(124,58,237,0.3), 0 4px 14px rgba(0,0,0,0.3); }
+  .mic-btn.active { background: linear-gradient(135deg, var(--red), #ef4444); box-shadow: 0 0 22px rgba(220,38,38,0.35), 0 4px 14px rgba(0,0,0,0.3); }
+  .mic-btn:active { transform: scale(0.95); }
+  .mic-wrap { position: relative; display: flex; align-items: center; justify-content: center; }
+  .mic-ring { position: absolute; border-radius: 18px; border: 1.5px solid rgba(124,58,237,0.2); pointer-events: none; }
 
   /* ── Empty state ── */
   .empty { text-align: center; padding: 80px 32px 32px; color: var(--muted); }
-  .empty .emoji { font-size: 52px; display: block; margin-bottom: 14px; }
+  .empty .ei { display: flex; justify-content: center; margin-bottom: 16px; opacity: 0.3; }
   .empty p { font-size: 16px; font-weight: 600; line-height: 1.5; }
   .empty small { font-size: 13px; color: rgba(255,255,255,0.2); margin-top: 8px; display: block; line-height: 1.6; }
 
@@ -82,76 +74,72 @@
   .back-btn { background: none; border: none; color: #a78bfa; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; margin-bottom: 12px; font-family: inherit; padding: 0; }
   .detail-title-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
   .detail-title-left { display: flex; align-items: center; gap: 10px; cursor: pointer; flex: 1; min-width: 0; }
-  .detail-icon { font-size: 28px; flex-shrink: 0; }
+  .detail-icon-wrap { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .detail-name-wrap { display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1; }
   .detail-name { font-size: 22px; font-weight: 900; letter-spacing: -0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .count-badge { background: rgba(120,80,255,0.15); border: 1px solid rgba(120,80,255,0.3); border-radius: 20px; padding: 6px 14px; color: #a78bfa; font-size: 13px; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
 
-  /* ── Rename listening state ── */
+  /* ── Rename listening ── */
   .rename-listening { display: flex; align-items: center; gap: 10px; margin-top: 10px; padding: 10px 14px; background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.25); border-radius: 12px; }
-  .rename-transcript { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.55); font-style: italic; flex: 1; }
+  .rename-transcript { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.45); font-style: italic; flex: 1; }
   .rename-transcript.has-text { color: rgba(255,255,255,0.85); font-style: normal; }
-  .rename-cancel { background: none; border: none; color: var(--muted); cursor: pointer; padding: 4px; display: flex; font-family: inherit; }
+  .rename-cancel { background: none; border: none; color: var(--muted); cursor: pointer; padding: 4px; display: flex; }
 
   /* ── Items ── */
-  .item-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; margin-bottom: 8px; border-radius: 16px; border: 1px solid var(--border); animation: slideIn 0.22s ease; transition: background 0.15s; }
-  .item-row.unchecked { background: var(--surface); }
-  .item-row.checked   { background: rgba(255,255,255,0.025); border-color: rgba(255,255,255,0.04); }
-  .checkbox { width: 26px; height: 26px; border-radius: 8px; flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; border: 2px solid rgba(124,58,237,0.55); background: transparent; }
+  .item-row { display: flex; align-items: center; gap: 12px; padding: 13px 14px; margin-bottom: 8px; border-radius: 14px; border: 1px solid var(--border); animation: slideIn 0.22s ease; background: var(--surface); transition: background 0.15s, opacity 0.15s; cursor: grab; user-select: none; }
+  .item-row.checked { background: rgba(255,255,255,0.025); border-color: rgba(255,255,255,0.04); }
+  .item-row.dragging { opacity: 0.4; cursor: grabbing; }
+  .item-row.drag-over { border-color: rgba(124,58,237,0.5); background: rgba(124,58,237,0.08); }
+  .drag-handle { display: flex; align-items: center; color: rgba(255,255,255,0.18); flex-shrink: 0; cursor: grab; padding: 0 2px; }
+  .checkbox { width: 24px; height: 24px; border-radius: 7px; flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; border: 2px solid rgba(124,58,237,0.5); background: transparent; }
   .checkbox.done { background: linear-gradient(135deg, var(--purple), var(--cyan)); border: none; box-shadow: 0 0 10px rgba(124,58,237,0.35); }
-  .item-text { flex: 1; font-size: 17px; font-weight: 600; transition: all 0.2s; }
+  .item-text { flex: 1; font-size: 16px; font-weight: 600; transition: all 0.2s; }
   .item-text.done { color: rgba(255,255,255,0.25); text-decoration: line-through; }
-  .item-del-btn { background: none; border: none; color: rgba(255,255,255,0.2); cursor: pointer; padding: 0 4px; display: flex; align-items: center; transition: color 0.15s; }
+  .item-del-btn { background: none; border: none; color: rgba(255,255,255,0.18); cursor: pointer; padding: 0 4px; display: flex; align-items: center; }
   .item-del-btn:active { color: rgba(239,68,68,0.7); }
 
   /* ── Day group ── */
-  .day-group { margin-bottom: 12px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.07); overflow: hidden; animation: slideIn 0.22s ease; }
-  .day-header { display: flex; align-items: center; gap: 10px; padding: 12px 16px; cursor: pointer; }
+  .day-group { margin-bottom: 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.07); overflow: hidden; animation: slideIn 0.22s ease; }
+  .day-header { display: flex; align-items: center; gap: 10px; padding: 11px 14px; cursor: pointer; }
   .day-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .day-label { flex: 1; font-size: 13px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
+  .day-label { flex: 1; font-size: 12px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; }
   .day-count { font-size: 12px; color: var(--muted); font-weight: 600; }
   .day-del { background: none; border: none; color: rgba(255,255,255,0.2); cursor: pointer; padding: 2px 4px; margin-left: 4px; display: flex; align-items: center; }
-  .day-del:active { color: rgba(239,68,68,0.7); }
-  .day-body { background: rgba(255,255,255,0.02); padding: 6px 10px 10px; }
-  .sub-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin-bottom: 5px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.04); }
+  .day-body { background: rgba(255,255,255,0.02); padding: 6px 8px 8px; }
+  .sub-row { display: flex; align-items: center; gap: 10px; padding: 10px 10px; margin-bottom: 4px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.04); cursor: grab; user-select: none; transition: opacity 0.15s; }
   .sub-row.checked { background: rgba(255,255,255,0.015); border-color: rgba(255,255,255,0.03); }
-  .sub-checkbox { width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
-  .sub-text { flex: 1; font-size: 16px; font-weight: 600; transition: all 0.2s; }
+  .sub-row.dragging { opacity: 0.4; }
+  .sub-row.drag-over { border-color: rgba(124,58,237,0.4); background: rgba(124,58,237,0.06); }
+  .sub-checkbox { width: 20px; height: 20px; border-radius: 5px; flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+  .sub-text { flex: 1; font-size: 15px; font-weight: 600; transition: all 0.2s; }
   .sub-text.done { color: rgba(255,255,255,0.25); text-decoration: line-through; }
   .sub-del { background: none; border: none; color: rgba(255,255,255,0.15); cursor: pointer; padding: 0 4px; display: flex; align-items: center; }
-  .sub-del:active { color: rgba(239,68,68,0.7); }
-  .day-empty { padding: 10px 8px; font-size: 14px; font-style: italic; color: rgba(255,255,255,0.2); font-weight: 600; }
+  .day-empty { padding: 10px 8px; font-size: 13px; font-style: italic; color: rgba(255,255,255,0.2); font-weight: 600; }
   .clear-btn { text-align: center; color: rgba(239,68,68,0.45); font-size: 14px; font-weight: 700; padding: 12px; cursor: pointer; border: none; background: none; width: 100%; font-family: inherit; }
 
+  /* ── Drop zone between day groups and regular items ── */
+  .drop-zone { height: 6px; border-radius: 3px; margin: 4px 0; transition: all 0.15s; }
+  .drop-zone.active { height: 32px; background: rgba(124,58,237,0.12); border: 2px dashed rgba(124,58,237,0.4); border-radius: 10px; }
+
   /* ── Voice bar ── */
-  .voice-bar { margin: 0 16px 10px; padding: 12px 16px; background: rgba(124,58,237,0.10); border: 1px solid rgba(124,58,237,0.22); border-radius: 16px; }
-  .waveform { display: flex; align-items: center; justify-content: center; gap: 3px; height: 28px; margin-bottom: 6px; }
+  .voice-bar { margin: 0 16px 10px; padding: 12px 16px; background: rgba(124,58,237,0.10); border: 1px solid rgba(124,58,237,0.22); border-radius: 14px; }
+  .waveform { display: flex; align-items: center; justify-content: center; gap: 3px; height: 26px; margin-bottom: 6px; }
   .wave-bar { width: 3px; border-radius: 2px; transition: height 0.1s; }
   .voice-transcript { font-size: 13px; font-weight: 600; text-align: center; color: rgba(255,255,255,0.35); font-style: italic; min-height: 18px; }
   .voice-transcript.has-text { color: rgba(255,255,255,0.75); font-style: normal; }
 
-  /* ── Mic pill button ── */
-  .mic-wrap { position: relative; display: flex; align-items: center; justify-content: center; }
-  .mic-ring { position: absolute; border-radius: 50%; border: 1.5px solid rgba(124,58,237,0.2); pointer-events: none; }
-  .mic-btn { display: flex; align-items: center; justify-content: center; gap: 10px; height: 52px; padding: 0 26px; border-radius: 26px; border: none; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; position: relative; z-index: 1; }
-  .mic-btn.idle   { background: linear-gradient(135deg, var(--purple), var(--purple2)); color: #fff; box-shadow: 0 0 22px rgba(124,58,237,0.3), 0 4px 14px rgba(0,0,0,0.3); }
-  .mic-btn.active { background: linear-gradient(135deg, var(--red), #ef4444); color: #fff; box-shadow: 0 0 22px rgba(220,38,38,0.35), 0 4px 14px rgba(0,0,0,0.3); }
-  .mic-btn:active { transform: scale(0.97); }
-  .mic-label { letter-spacing: 0.2px; }
-
   /* ── Create listening overlay ── */
-  .create-listen { position: fixed; inset: 0; background: rgba(0,0,0,0.75); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; gap: 24px; padding: 40px; }
-  .create-listen-title { font-size: 16px; font-weight: 700; color: rgba(255,255,255,0.5); letter-spacing: 1px; text-transform: uppercase; }
-  .create-listen-transcript { font-size: 28px; font-weight: 800; color: #fff; text-align: center; min-height: 40px; letter-spacing: -0.5px; }
-  .create-listen-cancel { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; color: rgba(255,255,255,0.5); font-size: 15px; font-weight: 700; padding: 12px 28px; cursor: pointer; font-family: inherit; margin-top: 10px; }
+  .create-listen { position: fixed; inset: 0; background: rgba(0,0,0,0.78); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; gap: 20px; padding: 40px; }
+  .create-listen-title { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.4); letter-spacing: 2px; text-transform: uppercase; }
+  .create-listen-transcript { font-size: 26px; font-weight: 800; color: #fff; text-align: center; min-height: 38px; letter-spacing: -0.5px; }
+  .create-listen-cancel { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; color: rgba(255,255,255,0.45); font-size: 14px; font-weight: 700; padding: 12px 28px; cursor: pointer; font-family: inherit; margin-top: 8px; }
 
   /* ── Flash ── */
   #flash { position: fixed; top: 10%; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, var(--purple), var(--cyan)); color: #fff; padding: 10px 24px; border-radius: 24px; font-size: 15px; font-weight: 700; box-shadow: 0 8px 24px rgba(124,58,237,0.4); white-space: nowrap; z-index: 200; display: none; animation: fadeUp 0.2s ease; pointer-events: none; }
 
-  /* ── Animations ── */
-  @keyframes slideIn  { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-  @keyframes fadeUp   { from { opacity:0; transform:translateX(-50%) translateY(8px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
-  @keyframes pulseRing { 0%{opacity:0.5;transform:scale(0.9)} 100%{opacity:0;transform:scale(1.5)} }
+  @keyframes slideIn  { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes fadeUp   { from{opacity:0;transform:translateX(-50%) translateY(8px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+  @keyframes pulseRing { 0%{opacity:0.5;transform:scale(0.9)} 100%{opacity:0;transform:scale(1.6)} }
 </style>
 </head>
 <body>
@@ -166,49 +154,34 @@
     <div class="scroll" id="home-scroll"></div>
     <div class="bottom-bar">
       <button class="fab" id="fab-new" aria-label="New list">
-        <!-- Plus icon -->
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round">
-          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-        </svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New List
       </button>
     </div>
   </div>
 
   <!-- DETAIL -->
   <div class="screen" id="screen-detail">
-    <div class="header" id="detail-header">
+    <div class="header">
       <button class="back-btn" id="back-btn">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="15 18 9 12 15 6"/>
-        </svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         All Lists
       </button>
       <div class="detail-title-row">
         <div class="detail-title-left" id="detail-title-left">
-          <span class="detail-icon" id="detail-icon"></span>
+          <div class="detail-icon-wrap" id="detail-icon"></div>
           <div class="detail-name-wrap">
             <span class="detail-name" id="detail-name"></span>
-            <!-- Pencil icon -->
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-            </svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           </div>
         </div>
         <div class="count-badge" id="detail-count"></div>
       </div>
-      <!-- Rename listening bar -->
       <div id="rename-listening" class="rename-listening" style="display:none;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/>
-          <line x1="8" y1="23" x2="16" y2="23"/>
-        </svg>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
         <span class="rename-transcript" id="rename-transcript">Listening for new name…</span>
         <button class="rename-cancel" id="rename-cancel">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2.2" stroke-linecap="round">
-            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
       <div class="progress-wrap" id="detail-progress" style="display:none;">
@@ -226,25 +199,21 @@
 
     <div class="bottom-bar">
       <div class="mic-wrap" id="mic-wrap">
-        <button class="mic-btn idle" id="mic-btn">
-          <!-- Mic icon -->
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <button class="mic-btn idle" id="mic-btn" aria-label="Start listening">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
             <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
             <line x1="12" y1="19" x2="12" y2="23"/>
             <line x1="8" y1="23" x2="16" y2="23"/>
           </svg>
-          <span class="mic-label" id="mic-label">Tap to speak</span>
         </button>
       </div>
     </div>
   </div>
-
 </div>
 
 <div id="flash"></div>
 
-<!-- Create listening overlay -->
 <div id="create-listen" class="create-listen" style="display:none;">
   <div class="waveform" id="create-waveform"></div>
   <div class="create-listen-title">Name your list</div>
@@ -257,120 +226,149 @@
 //  CONSTANTS
 // ═══════════════════════════════════════
 const STORAGE_KEY = 'voice-lists-v1';
-
 const ACCENT_COLORS = [
-  '#7c3aed', '#4f46e5', '#0891b2', '#0d9488',
-  '#16a34a', '#ca8a04', '#dc2626', '#db2777',
-  '#9333ea', '#2563eb', '#059669', '#d97706'
+  '#7c3aed','#4f46e5','#0891b2','#0d9488',
+  '#16a34a','#ca8a04','#dc2626','#db2777',
+  '#9333ea','#2563eb','#059669','#d97706'
 ];
-
 const DAY_COLORS = {
-  monday:    { bg:'#4f46e5', light:'rgba(79,70,229,0.12)',   border:'rgba(79,70,229,0.3)' },
-  tuesday:   { bg:'#0891b2', light:'rgba(8,145,178,0.12)',   border:'rgba(8,145,178,0.3)' },
-  wednesday: { bg:'#16a34a', light:'rgba(22,163,74,0.12)',   border:'rgba(22,163,74,0.3)' },
-  thursday:  { bg:'#d97706', light:'rgba(217,119,6,0.12)',   border:'rgba(217,119,6,0.3)' },
-  friday:    { bg:'#db2777', light:'rgba(219,39,119,0.12)',  border:'rgba(219,39,119,0.3)' },
-  saturday:  { bg:'#7c3aed', light:'rgba(124,58,237,0.12)',  border:'rgba(124,58,237,0.3)' },
-  sunday:    { bg:'#dc2626', light:'rgba(220,38,38,0.12)',   border:'rgba(220,38,38,0.3)' },
+  monday:    {bg:'#4f46e5',light:'rgba(79,70,229,0.12)',  border:'rgba(79,70,229,0.3)'},
+  tuesday:   {bg:'#0891b2',light:'rgba(8,145,178,0.12)',  border:'rgba(8,145,178,0.3)'},
+  wednesday: {bg:'#16a34a',light:'rgba(22,163,74,0.12)',  border:'rgba(22,163,74,0.3)'},
+  thursday:  {bg:'#d97706',light:'rgba(217,119,6,0.12)',  border:'rgba(217,119,6,0.3)'},
+  friday:    {bg:'#db2777',light:'rgba(219,39,119,0.12)', border:'rgba(219,39,119,0.3)'},
+  saturday:  {bg:'#7c3aed',light:'rgba(124,58,237,0.12)', border:'rgba(124,58,237,0.3)'},
+  sunday:    {bg:'#dc2626',light:'rgba(220,38,38,0.12)',  border:'rgba(220,38,38,0.3)'},
 };
 const DAYS = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
 
+// White outline SVG icons for list categories
+const LIST_ICONS = {
+  shop:    `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>`,
+  travel:  `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.63A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 14.92z"/></svg>`,
+  school:  `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>`,
+  gym:     `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5h11M6.5 17.5h11M3 9.5h2.5v5H3zM18.5 9.5H21v5h-2.5zM5.5 12h13"/></svg>`,
+  home:    `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+  medical: `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>`,
+  game:    `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4M8 10v4M15 12h.01M18 12h.01"/></svg>`,
+  music:   `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`,
+  work:    `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>`,
+  food:    `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>`,
+  garden:  `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V12M12 12C12 12 7 10 5 5c3 0 6 2 7 7zM12 12c0 0 5-2 7-7-3 0-6 2-7 7z"/></svg>`,
+  pet:     `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="12" r="3"/><path d="M11 3a2 2 0 100 4 2 2 0 000-4zM16 8a2 2 0 100 4 2 2 0 000-4zM6 8a2 2 0 100 4 2 2 0 000-4zM18 14a2 2 0 100 4 2 2 0 000-4zM4 14a2 2 0 100 4 2 2 0 000-4z"/></svg>`,
+  gift:    `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>`,
+  tool:    `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>`,
+  art:     `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="#fff"/><circle cx="17.5" cy="10.5" r=".5" fill="#fff"/><circle cx="8.5" cy="7.5" r=".5" fill="#fff"/><circle cx="6.5" cy="12.5" r=".5" fill="#fff"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 011.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>`,
+  sport:   `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 000 20 14.5 14.5 0 000-20"/><path d="M2 12h20"/></svg>`,
+  clean:   `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/><path d="M8 6l4-3 4 3"/></svg>`,
+  idea:    `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg>`,
+  baby:    `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12h.01M15 12h.01M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5"/><path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/><path d="M2 12h2M20 12h2M12 2v2M12 20v2"/></svg>`,
+  drink:   `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 22h8M12 11v11M3 3l18 0M5 3l2 7a5 5 0 0010 0l2-7"/></svg>`,
+  church:  `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6M9 5h6"/><path d="M4 22V10l8-4 8 4v12"/><path d="M9 22v-6h6v6"/></svg>`,
+  money:   `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>`,
+  car:     `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v9a2 2 0 01-2 2h-3"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>`,
+  calendar:`<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
+  family:  `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>`,
+  default: `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>`,
+};
+
 const ICON_RULES = [
-  [['shop','grocer','supermarket','market','buy','tesco','asda','sainsbury'],'🛒'],
-  [['holiday','travel','trip','vacation','flight','pack','suitcase'],'✈️'],
-  [['christmas','xmas','festive','advent'],'🎄'],
-  [['school','study','book','homework','college','university','revision','learn'],'📚'],
-  [['gym','fitness','workout','exercise','training','weights'],'💪'],
-  [['home','house','flat','diy','repair','declutter'],'🏠'],
-  [['medicine','medical','doctor','pharmacy','health','prescription'],'💊'],
-  [['game','gaming','xbox','playstation','nintendo'],'🎮'],
-  [['music','playlist','song','album','concert','band'],'🎵'],
-  [['work','office','meeting','project','job','business','client'],'💼'],
-  [['meal','dinner','lunch','breakfast','recipe','cook','bake'],'🍕'],
-  [['garden','plant','flower','grow','allotment'],'🌿'],
-  [['pet','dog','cat','animal','vet'],'🐾'],
-  [['birthday','gift','present','party','celebrate','anniversary'],'🎁'],
-  [['fix','repair','tool','build','install'],'🔧'],
-  [['art','draw','paint','design','craft','creative'],'🎨'],
-  [['football','soccer','sport','match','team'],'⚽'],
-  [['clean','hoover','tidy','laundry','wash','chores'],'🧹'],
-  [['idea','plan','brainstorm','note','reminder'],'💡'],
-  [['baby','toddler','nappy'],'🧸'],
-  [['wine','drink','beer','alcohol','pub','bar'],'🍷'],
-  [['church','ministry','prayer','worship','sermon','bible','sunday'],'⛪'],
-  [['money','budget','finance','bill','pay','invoice','tax','savings'],'💰'],
-  [['car','drive','vehicle','mot','service','fuel','parking'],'🚗'],
-  [['week','monday','tuesday','wednesday','schedule','plan','daily'],'📅'],
-  [['kids','children','family','son','daughter'],'👨‍👩‍👧'],
+  [['shop','grocer','supermarket','market','buy','tesco','asda','sainsbury'],'shop'],
+  [['holiday','travel','trip','vacation','flight','pack','suitcase','abroad'],'travel'],
+  [['christmas','xmas','festive','advent'],'gift'],
+  [['school','study','book','homework','college','university','revision','learn'],'school'],
+  [['gym','fitness','workout','exercise','training','weights'],'gym'],
+  [['home','house','flat','diy','repair','declutter'],'home'],
+  [['medicine','medical','doctor','pharmacy','health','prescription'],'medical'],
+  [['game','gaming','xbox','playstation','nintendo'],'game'],
+  [['music','playlist','song','album','concert','band'],'music'],
+  [['work','office','meeting','project','job','business','client'],'work'],
+  [['meal','dinner','lunch','breakfast','recipe','cook','bake'],'food'],
+  [['garden','plant','flower','grow','allotment'],'garden'],
+  [['pet','dog','cat','animal','vet'],'pet'],
+  [['birthday','gift','present','party','celebrate','anniversary'],'gift'],
+  [['fix','repair','tool','build','install'],'tool'],
+  [['art','draw','paint','design','craft','creative'],'art'],
+  [['football','soccer','sport','match','team'],'sport'],
+  [['clean','hoover','tidy','laundry','wash','chores'],'clean'],
+  [['idea','plan','brainstorm','note','reminder'],'idea'],
+  [['baby','toddler','nappy'],'baby'],
+  [['wine','drink','beer','alcohol','pub','bar'],'drink'],
+  [['church','ministry','prayer','worship','sermon','bible','sunday'],'church'],
+  [['money','budget','finance','bill','pay','invoice','tax','savings'],'money'],
+  [['car','drive','vehicle','mot','service','fuel','parking'],'car'],
+  [['week','monday','tuesday','wednesday','schedule','plan','daily'],'calendar'],
+  [['kids','children','family','son','daughter'],'family'],
 ];
+
+function autoIconKey(name) {
+  const lower=(name||'').toLowerCase();
+  for(const [kw,key] of ICON_RULES){if(kw.some(k=>lower.includes(k)))return key;}
+  return 'default';
+}
+function getIcon(key,size=28){
+  const svg=LIST_ICONS[key]||LIST_ICONS.default;
+  return `<svg width="${size}" height="${size}" ${svg.slice(4)}`;
+}
+
+// ═══════════════════════════════════════
+//  SVG UI ICONS
+// ═══════════════════════════════════════
+const SVG = {
+  check:  `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+  close:  `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+  chevD:  `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`,
+  chevU:  `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>`,
+  trash:  `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>`,
+  grip:   `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="18" x2="16" y2="18"/></svg>`,
+  micStop:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>`,
+};
 
 // ═══════════════════════════════════════
 //  HELPERS
 // ═══════════════════════════════════════
-function autoIcon(name) {
-  const lower = (name||'').toLowerCase();
-  for (const [kw, icon] of ICON_RULES) {
-    if (kw.some(k => lower.includes(k))) return icon;
-  }
-  return '📋';
+function capFirst(s){s=(s||'').trim();return s?s.charAt(0).toUpperCase()+s.slice(1):'';}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function randomAccent(){return ACCENT_COLORS[Math.floor(Math.random()*ACCENT_COLORS.length)];}
+function loadData(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||[];}catch{return[];}}
+function saveData(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state.lists));}catch{}}
+function parseVoice(text){
+  const lower=text.trim().toLowerCase();
+  for(const day of DAYS){if(lower.startsWith(day))return{isDay:true,day,rest:text.trim().slice(day.length).trim()};}
+  return{isDay:false,text:text.trim()};
 }
-function capFirst(s) { s=(s||'').trim(); return s ? s.charAt(0).toUpperCase()+s.slice(1) : ''; }
-function uid() { return Date.now().toString(36)+Math.random().toString(36).slice(2); }
-function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function randomAccent() { return ACCENT_COLORS[Math.floor(Math.random()*ACCENT_COLORS.length)]; }
-
-function loadData() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY))||[]; } catch { return []; } }
-function saveData() { try { localStorage.setItem(STORAGE_KEY,JSON.stringify(state.lists)); } catch {} }
-
-function parseVoice(text) {
-  const lower = text.trim().toLowerCase();
-  for (const day of DAYS) {
-    if (lower.startsWith(day)) return { isDay:true, day, rest:text.trim().slice(day.length).trim() };
-  }
-  return { isDay:false, text:text.trim() };
-}
-
-// SVG icons as strings for use in innerHTML
-const SVG = {
-  check: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
-  close: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
-  chevDown: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>`,
-  chevUp:   `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>`,
-  trash:    `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`,
-};
 
 // ═══════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════
-const state = {
-  lists: loadData(),
-  currentListId: null,
-  activeDayId: null,
-  renaming: false,
-  selectedColor: 0,
+const state={
+  lists:loadData(),
+  currentListId:null,
+  activeDayId:null,
+  renaming:false,
 };
-
-function currentList() { return state.lists.find(l=>l.id===state.currentListId); }
-function mutateItems(fn) {
-  state.lists = state.lists.map(l=>l.id===state.currentListId?{...l,items:fn(l.items||[])}:l);
+function currentList(){return state.lists.find(l=>l.id===state.currentListId);}
+function mutateItems(fn){
+  state.lists=state.lists.map(l=>l.id===state.currentListId?{...l,items:fn(l.items||[])}:l);
   saveData();
 }
-function countItems(items=[]) {
+function countItems(items=[]){
   let total=0,done=0;
-  for (const item of items) {
-    if (item.type==='item'){total++;if(item.checked)done++;}
+  for(const item of items){
+    if(item.type==='item'){total++;if(item.checked)done++;}
     else if(item.type==='day-group'){for(const si of item.items||[]){total++;if(si.checked)done++;}}
   }
-  return {total,done};
+  return{total,done};
 }
 
 // ═══════════════════════════════════════
 //  FLASH
 // ═══════════════════════════════════════
 let flashTimer=null;
-function flash(msg) {
+function flash(msg){
   const el=document.getElementById('flash');
-  el.textContent='✓ '+msg; el.style.display='block';
+  el.textContent='✓ '+msg;el.style.display='block';
   clearTimeout(flashTimer);
   flashTimer=setTimeout(()=>{el.style.display='none';},1800);
 }
@@ -378,7 +376,7 @@ function flash(msg) {
 // ═══════════════════════════════════════
 //  WAVEFORM
 // ═══════════════════════════════════════
-function buildWave(container) {
+function buildWave(container){
   container.innerHTML='';
   return Array.from({length:20},(_,i)=>{
     const b=document.createElement('div');
@@ -393,182 +391,130 @@ function buildWave(container) {
 // ═══════════════════════════════════════
 //  VOICE ENGINE
 // ═══════════════════════════════════════
-const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-function makeVoice() {
-  let rec=null, waveTimer=null, isOn=false;
-  return {
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+function makeVoice(){
+  let rec=null,waveTimer=null,isOn=false;
+  return{
     get isOn(){return isOn;},
-    start(onResult, opts={}) {
+    start(onResult,opts={}){
       if(!SR){alert('Speech recognition requires Chrome.');return;}
-      rec=new SR();
-      rec.continuous=false; rec.interimResults=true; rec.lang='en-US';
-      rec.onresult=e=>{
-        for(let i=e.resultIndex;i<e.results.length;i++){
-          const r=e.results[i];
-          onResult(r[0].transcript.trim(), r.isFinal);
-        }
-      };
+      rec=new SR();rec.continuous=false;rec.interimResults=true;rec.lang='en-US';
+      rec.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++){const r=e.results[i];onResult(r[0].transcript.trim(),r.isFinal);}};
       rec.onend=()=>{isOn=false;if(opts.onEnd)opts.onEnd();};
       rec.onerror=()=>{isOn=false;if(opts.onEnd)opts.onEnd();};
-      rec.start(); isOn=true;
+      rec.start();isOn=true;
     },
     stop(){try{rec&&rec.stop();}catch{}isOn=false;},
     startWave(bars){waveTimer=setInterval(()=>{bars.forEach(b=>{b.style.height=(Math.random()*26+4)+'px';});},110);},
     stopWave(){clearInterval(waveTimer);}
   };
 }
-
-const itemVoice   = makeVoice();
-const createVoice = makeVoice();
-const renameVoice = makeVoice();
+const itemVoice=makeVoice();
+const createVoice=makeVoice();
+const renameVoice=makeVoice();
 
 // ═══════════════════════════════════════
 //  SCREENS
 // ═══════════════════════════════════════
-function showScreen(id) {
+function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
 
 // ═══════════════════════════════════════
-//  HOME SCREEN
+//  HOME
 // ═══════════════════════════════════════
-function renderHome() {
+function renderHome(){
   const scroll=document.getElementById('home-scroll');
   if(!state.lists.length){
-    scroll.innerHTML=`<div class="empty"><span class="emoji">📋</span><p>Tap + to create your first list</p></div>`;
+    scroll.innerHTML=`<div class="empty"><div class="ei">${getIcon('default',48)}</div><p>Tap New List to get started</p></div>`;
     return;
   }
   scroll.innerHTML=state.lists.map(l=>{
     const {total,done}=countItems(l.items);
     const pct=total?(done/total*100):0;
     const accent=l.accent||'#7c3aed';
+    const iconKey=l.iconKey||autoIconKey(l.name);
     return `
       <div class="list-card" data-id="${l.id}" style="--card-accent:${accent}">
-        <div class="list-icon-wrap">${l.icon}</div>
+        <div class="list-icon-wrap">${getIcon(iconKey,28)}</div>
         <div class="list-info">
           <div class="list-name">${esc(l.name)}</div>
           <div class="list-meta">${total} item${total!==1?'s':''} · ${done} done</div>
           ${total?`<div class="list-progress"><div class="list-progress-fill" style="width:${pct}%;background:${accent}"></div></div>`:''}
         </div>
-        <button class="list-del" data-del="${l.id}" aria-label="Delete">${SVG.trash}</button>
+        <button class="list-del" data-del="${l.id}">${SVG.trash}</button>
       </div>`;
   }).join('');
-
   scroll.querySelectorAll('.list-card').forEach(card=>{
-    card.addEventListener('click',e=>{
-      if(e.target.closest('[data-del]'))return;
-      openList(card.dataset.id);
-    });
+    card.addEventListener('click',e=>{if(e.target.closest('[data-del]'))return;openList(card.dataset.id);});
   });
   scroll.querySelectorAll('[data-del]').forEach(btn=>{
-    btn.addEventListener('click',e=>{
-      e.stopPropagation();
-      state.lists=state.lists.filter(l=>l.id!==btn.dataset.del);
-      saveData(); renderHome();
-    });
+    btn.addEventListener('click',e=>{e.stopPropagation();state.lists=state.lists.filter(l=>l.id!==btn.dataset.del);saveData();renderHome();});
   });
 }
 
 // ═══════════════════════════════════════
-//  CREATE LIST — direct voice
+//  CREATE LIST
 // ═══════════════════════════════════════
 let createBars=[];
 const createOverlay=document.getElementById('create-listen');
 const createWf=document.getElementById('create-waveform');
 const createTx=document.getElementById('create-transcript');
 
-document.getElementById('fab-new').addEventListener('click',()=>{
-  openCreateListen();
-});
+document.getElementById('fab-new').addEventListener('click',openCreateListen);
+document.getElementById('create-cancel').addEventListener('click',()=>{createVoice.stop();createVoice.stopWave();createOverlay.style.display='none';});
 
-document.getElementById('create-cancel').addEventListener('click',()=>{
-  createVoice.stop(); createVoice.stopWave();
-  createOverlay.style.display='none';
-});
-
-function openCreateListen() {
+function openCreateListen(){
   createBars=buildWave(createWf);
   createTx.textContent='Listening…';
   createOverlay.style.display='flex';
-
   createVoice.start((text,isFinal)=>{
     createTx.textContent=text||'Listening…';
     if(isFinal&&text){
       const name=capFirst(text);
-      createVoice.stop(); createVoice.stopWave();
+      createVoice.stop();createVoice.stopWave();
       createOverlay.style.display='none';
       createNewList(name);
     }
-  },{
-    onEnd:()=>{
-      createVoice.stopWave();
-      // If nothing was heard, close the overlay
-      if(createOverlay.style.display!=='none'&&!createTx.textContent.trim()||createTx.textContent==='Listening…'){
-        createOverlay.style.display='none';
-      }
-    }
-  });
+  },{onEnd:()=>{createVoice.stopWave();}});
   createVoice.startWave(createBars);
 }
 
-function createNewList(name) {
-  const newList={
-    id:uid(), name, icon:autoIcon(name),
-    accent:randomAccent(), items:[], createdAt:Date.now()
-  };
+function createNewList(name){
+  const iconKey=autoIconKey(name);
+  const newList={id:uid(),name,iconKey,accent:randomAccent(),items:[],createdAt:Date.now()};
   state.lists.unshift(newList);
-  saveData();
-  renderHome();
-  // Immediately open the new list
+  saveData();renderHome();
   openList(newList.id);
 }
 
 // ═══════════════════════════════════════
-//  DETAIL SCREEN
+//  DETAIL
 // ═══════════════════════════════════════
-function openList(id) {
-  state.currentListId=id;
-  state.activeDayId=null;
-  state.renaming=false;
-  renderDetail();
-  showScreen('screen-detail');
-}
+function openList(id){state.currentListId=id;state.activeDayId=null;state.renaming=false;renderDetail();showScreen('screen-detail');}
 
-function renderDetail() {
-  const list=currentList(); if(!list)return;
+function renderDetail(){
+  const list=currentList();if(!list)return;
   const accent=list.accent||'#7c3aed';
+  const iconKey=list.iconKey||autoIconKey(list.name);
   const {total,done}=countItems(list.items);
   const pct=total?(done/total*100):0;
-
-  document.getElementById('detail-icon').textContent=list.icon;
+  document.getElementById('detail-icon').innerHTML=getIcon(iconKey,30);
   document.getElementById('detail-name').textContent=list.name;
   document.getElementById('detail-count').textContent=`${total} item${total!==1?'s':''}`;
-
-  // Accent the progress fill with list colour
   const prog=document.getElementById('detail-progress');
-  if(total>0){
-    prog.style.display='';
-    document.getElementById('detail-progress-fill').style.cssText=`width:${pct}%;background:${accent}`;
-    document.getElementById('detail-progress-label').textContent=`${done} of ${total} done`;
-  } else prog.style.display='none';
-
+  if(total>0){prog.style.display='';document.getElementById('detail-progress-fill').style.cssText=`width:${pct}%;background:${accent}`;document.getElementById('detail-progress-label').textContent=`${done} of ${total} done`;}
+  else prog.style.display='none';
   renderItems();
 }
 
-function renderItems() {
+function renderItems(){
   const list=currentList();
   const scroll=document.getElementById('detail-scroll');
   const items=list?.items||[];
-
   if(!items.length){
-    scroll.innerHTML=`
-      <div class="empty">
-        <span class="emoji">🎤</span>
-        <p>Tap the mic and speak your items</p>
-        <small>Start with a day e.g. "Monday Drama club"<br>to create a day group</small>
-      </div>`;
+    scroll.innerHTML=`<div class="empty"><div class="ei"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></div><p>Tap the mic and speak your items</p><small>Say a day first e.g. "Monday Drama club"<br>to create a day group</small></div>`;
     return;
   }
 
@@ -576,35 +522,37 @@ function renderItems() {
   for(const item of items){
     if(item.type==='item'){
       html+=`
-        <div class="item-row ${item.checked?'checked':'unchecked'}">
+        <div class="item-row ${item.checked?'checked':''}" data-id="${item.id}" draggable="true">
+          <div class="drag-handle" data-handle>${SVG.grip}</div>
           <div class="checkbox ${item.checked?'done':''}" data-toggle="${item.id}">
-            ${item.checked?SVG.check:''}
+            ${item.checked?`<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`:''}
           </div>
           <span class="item-text ${item.checked?'done':''}">${esc(item.text)}</span>
-          <button class="item-del-btn" data-del="${item.id}" style="color:rgba(255,255,255,0.2)">${SVG.close}</button>
+          <button class="item-del-btn" data-del="${item.id}">${SVG.close}</button>
         </div>`;
     } else if(item.type==='day-group'){
       const dc=DAY_COLORS[item.day]||DAY_COLORS.monday;
       const gDone=(item.items||[]).filter(si=>si.checked).length;
       html+=`
-        <div class="day-group" style="border-color:${dc.border}">
+        <div class="day-group" data-gid="${item.id}" style="border-color:${dc.border}">
           <div class="day-header" style="background:${dc.light}" data-collapse="${item.id}">
             <div class="day-dot" style="background:${dc.bg}"></div>
             <span class="day-label" style="color:${dc.bg}">${item.day}</span>
             <span class="day-count">${gDone}/${(item.items||[]).length}</span>
-            <span style="color:rgba(255,255,255,0.3)">${item.collapsed?SVG.chevDown:SVG.chevUp}</span>
+            <span style="color:rgba(255,255,255,0.3);display:flex">${item.collapsed?SVG.chevD:SVG.chevU}</span>
             <button class="day-del" data-gdel="${item.id}">${SVG.close}</button>
           </div>
           ${!item.collapsed?`
-          <div class="day-body">
+          <div class="day-body" data-gbody="${item.id}">
             ${!(item.items||[]).length?'<div class="day-empty">No items yet — speak to add</div>':
               (item.items||[]).map(si=>`
-              <div class="sub-row ${si.checked?'checked':''}">
-                <div class="sub-checkbox" style="${si.checked?`background:${dc.bg};border:none`:`border:2px solid ${dc.bg}77;background:transparent`}" data-subtoggle="${si.id}" data-gid="${item.id}">
+              <div class="sub-row ${si.checked?'checked':''}" data-sid="${si.id}" data-parent="${item.id}" draggable="true">
+                <div class="drag-handle">${SVG.grip}</div>
+                <div class="sub-checkbox" style="${si.checked?`background:${dc.bg};border:none`:`border:2px solid ${dc.bg}66;background:transparent`}" data-subtoggle="${si.id}" data-gid="${item.id}">
                   ${si.checked?`<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`:''}
                 </div>
                 <span class="sub-text ${si.checked?'done':''}">${esc(si.text)}</span>
-                <button class="sub-del" data-subdel="${si.id}" data-gid="${item.id}" style="color:rgba(255,255,255,0.18)">${SVG.close}</button>
+                <button class="sub-del" data-subdel="${si.id}" data-gid="${item.id}">${SVG.close}</button>
               </div>`).join('')}
           </div>`:''}
         </div>`;
@@ -612,10 +560,13 @@ function renderItems() {
   }
 
   const hasChecked=items.some(i=>(i.type==='item'&&i.checked)||(i.type==='day-group'&&(i.items||[]).some(si=>si.checked)));
-  if(hasChecked) html+=`<button class="clear-btn" id="clear-btn">Clear completed</button>`;
-
+  if(hasChecked)html+=`<button class="clear-btn" id="clear-btn">Clear completed</button>`;
   scroll.innerHTML=html;
+  wireItemEvents(scroll);
+  wireDrag(scroll);
+}
 
+function wireItemEvents(scroll){
   scroll.querySelectorAll('[data-toggle]').forEach(el=>el.addEventListener('click',()=>toggleItem(el.dataset.toggle)));
   scroll.querySelectorAll('[data-del]').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();deleteItem(el.dataset.del);}));
   scroll.querySelectorAll('[data-collapse]').forEach(el=>el.addEventListener('click',e=>{if(!e.target.closest('[data-gdel]'))toggleCollapse(el.dataset.collapse);}));
@@ -624,6 +575,119 @@ function renderItems() {
   scroll.querySelectorAll('[data-subdel]').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();deleteSubItem(el.dataset.gid,el.dataset.subdel);}));
   const cb=document.getElementById('clear-btn');
   if(cb)cb.addEventListener('click',clearChecked);
+}
+
+// ═══════════════════════════════════════
+//  DRAG AND DROP
+// ═══════════════════════════════════════
+function wireDrag(scroll){
+  let dragEl=null, dragType=null, dragId=null, dragParent=null;
+
+  function onDragStart(e){
+    dragEl=e.currentTarget;
+    // Determine type
+    if(dragEl.classList.contains('item-row')){
+      dragType='item'; dragId=dragEl.dataset.id; dragParent=null;
+    } else if(dragEl.classList.contains('sub-row')){
+      dragType='sub'; dragId=dragEl.dataset.sid; dragParent=dragEl.dataset.parent;
+    }
+    dragEl.classList.add('dragging');
+    e.dataTransfer.effectAllowed='move';
+    e.dataTransfer.setData('text/plain',dragId);
+  }
+
+  function onDragEnd(){
+    if(dragEl)dragEl.classList.remove('dragging');
+    scroll.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over'));
+    dragEl=null; dragType=null; dragId=null; dragParent=null;
+  }
+
+  function onDragOver(e){
+    e.preventDefault();
+    const target=e.currentTarget;
+    if(target===dragEl)return;
+    scroll.querySelectorAll('.drag-over').forEach(el=>el.classList.remove('drag-over'));
+    target.classList.add('drag-over');
+  }
+
+  function onDrop(e){
+    e.preventDefault();
+    const target=e.currentTarget;
+    target.classList.remove('drag-over');
+    if(!dragEl||target===dragEl)return;
+
+    if(dragType==='item'){
+      // Dropping a regular item onto another regular item
+      if(target.classList.contains('item-row')){
+        const targetId=target.dataset.id;
+        mutateItems(items=>{
+          const list=[...items];
+          const fromIdx=list.findIndex(i=>i.id===dragId);
+          const toIdx=list.findIndex(i=>i.id===targetId);
+          if(fromIdx<0||toIdx<0)return items;
+          const [moved]=list.splice(fromIdx,1);
+          list.splice(toIdx,0,moved);
+          return list;
+        });
+        renderItems();
+      }
+      // Dropping a regular item into a day group body
+      if(target.classList.contains('day-body')){
+        const gid=target.dataset.gbody;
+        mutateItems(items=>{
+          const list=[...items];
+          const fromIdx=list.findIndex(i=>i.id===dragId);
+          if(fromIdx<0)return items;
+          const [moved]=list.splice(fromIdx,1);
+          // Convert to sub-item and add to group
+          const subItem={id:uid(),text:moved.text,checked:moved.checked};
+          return list.map(i=>i.id===gid?{...i,items:[...(i.items||[]),subItem]}:i);
+        });
+        renderDetail();
+      }
+    }
+
+    if(dragType==='sub'){
+      // Reorder within same day group
+      if(target.classList.contains('sub-row')&&target.dataset.parent===dragParent){
+        const targetSid=target.dataset.sid;
+        mutateItems(items=>items.map(i=>{
+          if(i.id!==dragParent)return i;
+          const subs=[...i.items];
+          const fromIdx=subs.findIndex(s=>s.id===dragId);
+          const toIdx=subs.findIndex(s=>s.id===targetSid);
+          if(fromIdx<0||toIdx<0)return i;
+          const [moved]=subs.splice(fromIdx,1);
+          subs.splice(toIdx,0,moved);
+          return{...i,items:subs};
+        }));
+        renderItems();
+      }
+    }
+  }
+
+  // Wire regular items
+  scroll.querySelectorAll('.item-row[draggable]').forEach(el=>{
+    el.addEventListener('dragstart',onDragStart);
+    el.addEventListener('dragend',onDragEnd);
+    el.addEventListener('dragover',onDragOver);
+    el.addEventListener('drop',onDrop);
+  });
+
+  // Wire sub-items
+  scroll.querySelectorAll('.sub-row[draggable]').forEach(el=>{
+    el.addEventListener('dragstart',onDragStart);
+    el.addEventListener('dragend',onDragEnd);
+    el.addEventListener('dragover',onDragOver);
+    el.addEventListener('drop',onDrop);
+  });
+
+  // Wire day-body as drop target for regular items
+  scroll.querySelectorAll('[data-gbody]').forEach(el=>{
+    el.addEventListener('dragover',e=>{e.preventDefault();el.style.background='rgba(124,58,237,0.08)';});
+    el.addEventListener('dragleave',()=>{el.style.background='';});
+    el.addEventListener('drop',e=>{el.style.background='';onDrop(e);});
+  });
 }
 
 // ═══════════════════════════════════════
@@ -651,12 +715,12 @@ function reorderItems(){
   mutateItems(items=>{
     const dayGroups=items.filter(i=>i.type==='day-group').sort((a,b)=>DAYS.indexOf(a.day)-DAYS.indexOf(b.day));
     const regular=items.filter(i=>i.type!=='day-group');
-    return [...dayGroups,...regular];
+    return[...dayGroups,...regular];
   });
 }
 
 // ═══════════════════════════════════════
-//  VOICE — ITEM PROCESSING
+//  VOICE ITEM PROCESSING
 // ═══════════════════════════════════════
 function processVoiceItem(text){
   const parsed=parseVoice(text);
@@ -700,58 +764,43 @@ function addSubItem(gid,text){
 // ═══════════════════════════════════════
 //  MIC BUTTON
 // ═══════════════════════════════════════
-const micBtn   = document.getElementById('mic-btn');
-const micLabel = document.getElementById('mic-label');
-const micWrap  = document.getElementById('mic-wrap');
-const itemWfEl = document.getElementById('item-waveform');
-const itemTxEl = document.getElementById('item-transcript');
-const vBarEl   = document.getElementById('voice-bar');
-let itemBars=[], keepListening=false;
+const micBtn=document.getElementById('mic-btn');
+const micWrap=document.getElementById('mic-wrap');
+const itemWfEl=document.getElementById('item-waveform');
+const itemTxEl=document.getElementById('item-transcript');
+const vBarEl=document.getElementById('voice-bar');
+let itemBars=[],keepListening=false;
 
-const micIconIdle=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>`;
-const micIconStop=`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>`;
+const micSvgIdle=`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>`;
+const micSvgStop=`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>`;
 
 function setMicActive(on){
   if(on){
-    micBtn.className='mic-btn active';
-    micBtn.innerHTML=micIconStop+`<span class="mic-label">Tap to stop</span>`;
-    vBarEl.style.display='';
-    addRings();
+    micBtn.className='mic-btn active';micBtn.innerHTML=micSvgStop;
+    vBarEl.style.display='';addRings();
   } else {
-    micBtn.className='mic-btn idle';
-    micBtn.innerHTML=micIconIdle+`<span class="mic-label">Tap to speak</span>`;
-    vBarEl.style.display='none';
-    removeRings();
-    itemVoice.stopWave();
+    micBtn.className='mic-btn idle';micBtn.innerHTML=micSvgIdle;
+    vBarEl.style.display='none';removeRings();itemVoice.stopWave();
   }
 }
 
 function startItemListening(){
   itemBars=buildWave(itemWfEl);
-  itemTxEl.textContent='Listening…';
-  itemTxEl.className='voice-transcript';
-
-  let holdTimer=null, pendingText='';
-
+  itemTxEl.textContent='Listening…';itemTxEl.className='voice-transcript';
+  let holdTimer=null,pendingText='';
   itemVoice.start((text,isFinal)=>{
     itemTxEl.textContent=text||'Listening…';
     itemTxEl.className='voice-transcript'+(text?' has-text':'');
     if(isFinal&&text){
-      clearTimeout(holdTimer);
-      pendingText=text;
-      holdTimer=setTimeout(()=>{
-        if(pendingText){processVoiceItem(pendingText);pendingText='';}
-      },300);
+      clearTimeout(holdTimer);pendingText=text;
+      holdTimer=setTimeout(()=>{if(pendingText){processVoiceItem(pendingText);pendingText='';}},300);
     }
   },{
     onEnd:()=>{
       clearTimeout(holdTimer);
       if(pendingText){processVoiceItem(pendingText);pendingText='';}
-      if(keepListening){
-        setTimeout(()=>{if(keepListening)startItemListening();},150);
-      } else {
-        setMicActive(false);
-      }
+      if(keepListening){setTimeout(()=>{if(keepListening)startItemListening();},150);}
+      else{setMicActive(false);}
     }
   });
   itemVoice.startWave(itemBars);
@@ -759,46 +808,41 @@ function startItemListening(){
 
 micBtn.addEventListener('click',()=>{
   if(keepListening){
-    keepListening=false;
-    itemVoice.stop(); itemVoice.stopWave();
-    setMicActive(false);
-    state.activeDayId=null;
+    keepListening=false;itemVoice.stop();itemVoice.stopWave();
+    setMicActive(false);state.activeDayId=null;
   } else {
-    keepListening=true;
-    state.activeDayId=null;
-    setMicActive(true);
-    startItemListening();
+    keepListening=true;state.activeDayId=null;
+    setMicActive(true);startItemListening();
   }
 });
 
 function addRings(){
   removeRings();
   [1,2].forEach(r=>{
-    const d=document.createElement('div');
-    d.className='mic-ring';
-    const sz=52+r*22;
-    d.style.cssText=`width:${sz}px;height:${sz}px;animation:pulseRing ${0.9+r*0.4}s ease-out infinite;animation-delay:${r*0.15}s`;
+    const d=document.createElement('div');d.className='mic-ring';
+    const w=56+r*20,h=56+r*20;
+    d.style.cssText=`width:${w}px;height:${h}px;animation:pulseRing ${0.9+r*0.4}s ease-out infinite;animation-delay:${r*0.15}s`;
     micWrap.insertBefore(d,micWrap.firstChild);
   });
 }
 function removeRings(){micWrap.querySelectorAll('.mic-ring').forEach(r=>r.remove());}
 
 // ═══════════════════════════════════════
-//  BACK BUTTON
+//  BACK
 // ═══════════════════════════════════════
 document.getElementById('back-btn').addEventListener('click',()=>{
   keepListening=false;
-  itemVoice.stop(); itemVoice.stopWave();
-  renameVoice.stop(); renameVoice.stopWave();
+  itemVoice.stop();itemVoice.stopWave();
+  renameVoice.stop();
   setMicActive(false);
-  state.activeDayId=null; state.renaming=false;
-  renderHome(); showScreen('screen-home');
+  state.activeDayId=null;state.renaming=false;
+  document.getElementById('rename-listening').style.display='none';
+  renderHome();showScreen('screen-home');
 });
 
 // ═══════════════════════════════════════
-//  RENAME — tap name to listen
+//  RENAME
 // ═══════════════════════════════════════
-let renameBars=[];
 const renameListeningEl=document.getElementById('rename-listening');
 const renameTxEl=document.getElementById('rename-transcript');
 
@@ -808,33 +852,22 @@ document.getElementById('detail-title-left').addEventListener('click',()=>{
   renameListeningEl.style.display='flex';
   renameTxEl.textContent='Listening for new name…';
   renameTxEl.className='rename-transcript';
-  renameBars=buildWave(document.createElement('div')); // dummy — no waveform in rename bar
-
   renameVoice.start((text,isFinal)=>{
     renameTxEl.textContent=text||'Listening for new name…';
     renameTxEl.className='rename-transcript'+(text?' has-text':'');
     if(isFinal&&text){
       const name=capFirst(text);
-      state.lists=state.lists.map(l=>l.id===state.currentListId?{...l,name,icon:autoIcon(name)}:l);
-      saveData();
-      state.renaming=false;
-      renameVoice.stop();
+      const iconKey=autoIconKey(name);
+      state.lists=state.lists.map(l=>l.id===state.currentListId?{...l,name,iconKey}:l);
+      saveData();state.renaming=false;renameVoice.stop();
       renameListeningEl.style.display='none';
-      renderDetail();
-      flash(`Renamed to "${name}"`);
+      renderDetail();flash(`Renamed to "${name}"`);
     }
-  },{onEnd:()=>{
-    if(state.renaming){
-      state.renaming=false;
-      renameListeningEl.style.display='none';
-    }
-  }});
+  },{onEnd:()=>{if(state.renaming){state.renaming=false;renameListeningEl.style.display='none';}}});
 });
 
 document.getElementById('rename-cancel').addEventListener('click',()=>{
-  state.renaming=false;
-  renameVoice.stop();
-  renameListeningEl.style.display='none';
+  state.renaming=false;renameVoice.stop();renameListeningEl.style.display='none';
 });
 
 // ═══════════════════════════════════════
@@ -844,9 +877,6 @@ if('serviceWorker' in navigator){
   window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
 }
 
-// ═══════════════════════════════════════
-//  INIT
-// ═══════════════════════════════════════
 renderHome();
 </script>
 </body>
