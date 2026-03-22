@@ -338,7 +338,6 @@ function todayDate(){
   const d=new Date();d.setHours(0,0,0,0);return d;
 }
 function dateToKey(d){
-  // Store as YYYY-MM-DD string
   return d.toISOString().slice(0,10);
 }
 function keyToDate(k){
@@ -346,30 +345,54 @@ function keyToDate(k){
   const dt=new Date(y,m-1,d);dt.setHours(0,0,0,0);return dt;
 }
 function daysDiff(dateKey){
-  // Positive = future, negative = past, 0 = today
   const today=todayDate();
   const target=keyToDate(dateKey);
   return Math.round((target-today)/(1000*60*60*24));
 }
+function dayName(d){
+  return['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
+}
+function fullDayName(d){
+  return['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getDay()];
+}
 function dateGroupLabel(dateKey){
   const diff=daysDiff(dateKey);
-  if(diff===0)return'Today';
-  if(diff===1)return'Tomorrow';
-  if(diff===-1)return'Yesterday';
   const d=keyToDate(dateKey);
-  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  return`${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
+  if(diff===0) return 'Today';
+  if(diff===1) return 'Tomorrow';
+  if(diff===-1) return 'Yesterday';
+  // Within 7 days either direction — just day name
+  if(diff>1 && diff<=7) return fullDayName(d);
+  if(diff<-1 && diff>=-7) return fullDayName(d);
+  // Beyond 7 days — day name + date
+  return `${dayName(d)} ${d.getDate()} ${months[d.getMonth()]}`;
 }
 function nextWeekdayDate(dayName){
-  // Returns the date of the NEXT occurrence of dayName (always at least 1 day ahead)
   const dayIdx=DAYS.indexOf(dayName);
   const today=todayDate();
-  const todayIdx=today.getDay()===0?6:today.getDay()-1; // Mon=0
+  const todayIdx=today.getDay()===0?6:today.getDay()-1;
   let diff=dayIdx-todayIdx;
   if(diff<=0)diff+=7;
   const result=new Date(today);result.setDate(today.getDate()+diff);
   return dateToKey(result);
+}
+function lastWeekdayDate(dayName){
+  // Most recent past occurrence of this day (always at least 1 day back)
+  const dayIdx=DAYS.indexOf(dayName);
+  const today=todayDate();
+  const todayIdx=today.getDay()===0?6:today.getDay()-1;
+  let diff=dayIdx-todayIdx;
+  if(diff>=0)diff-=7;
+  const result=new Date(today);result.setDate(today.getDate()+diff);
+  return dateToKey(result);
+}
+function isTomorrow(dayName){
+  // Returns true if the given day name is tomorrow's weekday
+  const tomorrow=new Date(todayDate());
+  tomorrow.setDate(tomorrow.getDate()+1);
+  const tIdx=tomorrow.getDay()===0?6:tomorrow.getDay()-1; // Mon=0
+  return DAYS.indexOf(dayName)===tIdx;
 }
 
 function parseVoice(text){
@@ -381,8 +404,23 @@ function parseVoice(text){
   const nextMatch=lower.match(/^next\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s*(.*)/);
   if(nextMatch){
     const day=nextMatch[1];
-    const rest=trimmed.slice(nextMatch[0].length-(nextMatch[2].length)).trim();
+    const rest=trimmed.slice(trimmed.toLowerCase().indexOf(day)+day.length).trim();
     return{isDateGroup:true,dateKey:nextWeekdayDate(day),rest:capFirst(rest)};
+  }
+
+  // "last [day]" e.g. "last monday dentist"
+  const lastMatch=lower.match(/^last\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s*(.*)/);
+  if(lastMatch){
+    const day=lastMatch[1];
+    const rest=trimmed.slice(trimmed.toLowerCase().indexOf(day)+day.length).trim();
+    return{isDateGroup:true,dateKey:lastWeekdayDate(day),rest:capFirst(rest)};
+  }
+
+  // "day after tomorrow"
+  if(lower.startsWith('day after tomorrow')){
+    const t=new Date(today);t.setDate(today.getDate()+2);
+    const rest=capFirst(trimmed.slice(18).trim());
+    return{isDateGroup:true,dateKey:dateToKey(t),rest};
   }
 
   // "today", "tomorrow", "yesterday"
@@ -401,10 +439,17 @@ function parseVoice(text){
     return{isDateGroup:true,dateKey:dateToKey(t),rest};
   }
 
-  // bare day names
+  // bare day names — check if it's tomorrow's day first
   for(const day of DAYS){
     if(lower.startsWith(day)){
-      return{isDay:true,day,rest:trimmed.slice(day.length).trim()};
+      const rest=trimmed.slice(day.length).trim();
+      if(isTomorrow(day)){
+        // This day IS tomorrow — treat as date group
+        const t=new Date(today);t.setDate(today.getDate()+1);
+        return{isDateGroup:true,dateKey:dateToKey(t),rest:capFirst(rest)};
+      }
+      // Otherwise permanent day-of-week group
+      return{isDay:true,day,rest};
     }
   }
   return{isDay:false,text:trimmed};
