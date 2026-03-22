@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <meta name="theme-color" content="#0e0e1a"/>
+<meta name="theme-color" content="#0e0e1a" media="(prefers-color-scheme: dark)"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <title>Voxlist</title>
 <link rel="manifest" href="manifest.json"/>
@@ -24,7 +25,7 @@
     --safe-top:    env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
   }
-  html, body { height: 100%; background: var(--bg); font-family: 'Nunito', sans-serif; color: var(--text); overflow: hidden; }
+  html, body { height: 100%; background: var(--bg); font-family: 'Nunito', sans-serif; color: var(--text); overflow: hidden; color-scheme: dark; }
   #app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
   .screen { display: none; flex-direction: column; flex: 1; overflow: hidden; padding-top: var(--safe-top); }
   .screen.active { display: flex; }
