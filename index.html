@@ -538,7 +538,7 @@ function parseVoice(text){
   // meal/food triggers — create a dish item
   for(const trigger of ['meal','breakfast','lunch','dinner','supper','snack']){
     if(lower.startsWith(trigger)){
-      const rest=capFirst(trimmed.slice(trigger.length).trim());
+      const rest=capFirst(trimmed.slice(trigger.length).trim())||null;
       return{isDish:true,dishName:rest};
     }
   }
