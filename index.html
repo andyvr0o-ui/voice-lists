@@ -1421,6 +1421,21 @@ function openRecipeOverlay(gid){
 }
 
 
+const recipeOverlay    = document.getElementById('recipe-overlay');
+const recipeUrlInput   = document.getElementById('recipe-url-input');
+const recipeFetchBtn   = document.getElementById('recipe-fetch-btn');
+const recipePreview    = document.getElementById('recipe-preview');
+const recipeStatus     = document.getElementById('recipe-status');
+let activeRecipeGroupId  = null;
+let activeNestedRecipeIds = null;
+
+document.getElementById('recipe-overlay-close').addEventListener('click',()=>{
+  recipeOverlay.style.display='none';
+  activeDishContext=null;
+  activeRecipeGroupId=null;
+  activeNestedRecipeIds=null;
+});
+
 recipeFetchBtn.addEventListener('click', ()=>{
   const url=recipeUrlInput.value.trim();
   if(!url){recipeStatus.textContent='Please enter a URL first';return;}
@@ -1630,6 +1645,122 @@ function openMethodScreen(dish){
 
   scroll.innerHTML=html;
   methodScreen.style.display='flex';
+}
+
+// ═══════════════════════════════════════
+//  MIC BUTTON
+// ═══════════════════════════════════════
+const micBtn    = document.getElementById('mic-btn');
+const micWrap   = document.getElementById('mic-wrap');
+const itemWfEl  = document.getElementById('item-waveform');
+const itemTxEl  = document.getElementById('item-transcript');
+const vBarEl    = document.getElementById('voice-bar');
+let itemBars=[], keepListening=false;
+
+const micSvgIdle=`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>`;
+const micSvgStop=`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>`;
+
+function setMicActive(on){
+  if(on){
+    micBtn.className='mic-btn active';micBtn.innerHTML=micSvgStop;
+    vBarEl.style.display='';addRings();
+  } else {
+    micBtn.className='mic-btn idle';micBtn.innerHTML=micSvgIdle;
+    vBarEl.style.display='none';removeRings();itemVoice.stopWave();
+  }
+}
+
+function startItemListening(){
+  itemBars=buildWave(itemWfEl);
+  itemTxEl.textContent='Listening…';itemTxEl.className='voice-transcript';
+  let holdTimer=null,pendingText='';
+  itemVoice.start((text,isFinal)=>{
+    itemTxEl.textContent=text||'Listening…';
+    itemTxEl.className='voice-transcript'+(text?' has-text':'');
+    if(isFinal&&text){
+      clearTimeout(holdTimer);pendingText=text;
+      holdTimer=setTimeout(()=>{if(pendingText){processVoiceItem(pendingText);pendingText='';}},300);
+    }
+  },{
+    onEnd:()=>{
+      clearTimeout(holdTimer);
+      if(pendingText){processVoiceItem(pendingText);pendingText='';}
+      if(keepListening){setTimeout(()=>{if(keepListening)startItemListening();},150);}
+      else{setMicActive(false);}
+    }
+  });
+  itemVoice.startWave(itemBars);
+}
+
+micBtn.addEventListener('click',()=>{
+  if(keepListening){
+    keepListening=false;itemVoice.stop();itemVoice.stopWave();
+    setMicActive(false);state.activeDayId=null;
+  } else {
+    keepListening=true;state.activeDayId=null;
+    setMicActive(true);startItemListening();
+  }
+});
+
+function addRings(){
+  removeRings();
+  [1,2].forEach(r=>{
+    const d=document.createElement('div');d.className='mic-ring';
+    const w=56+r*20,h=56+r*20;
+    d.style.cssText=`width:${w}px;height:${h}px;animation:pulseRing ${0.9+r*0.4}s ease-out infinite;animation-delay:${r*0.15}s`;
+    micWrap.insertBefore(d,micWrap.firstChild);
+  });
+}
+function removeRings(){micWrap.querySelectorAll('.mic-ring').forEach(r=>r.remove());}
+
+// ═══════════════════════════════════════
+//  BACK BUTTON
+// ═══════════════════════════════════════
+document.getElementById('back-btn').addEventListener('click',()=>{
+  keepListening=false;
+  itemVoice.stop();itemVoice.stopWave();
+  renameVoice.stop();
+  setMicActive(false);
+  state.activeDayId=null;state.renaming=false;
+  document.getElementById('rename-listening').style.display='none';
+  renderHome();showScreen('screen-home');
+});
+
+// ═══════════════════════════════════════
+//  RENAME
+// ═══════════════════════════════════════
+const renameListeningEl=document.getElementById('rename-listening');
+const renameTxEl=document.getElementById('rename-transcript');
+
+document.getElementById('detail-title-left').addEventListener('click',()=>{
+  if(state.renaming)return;
+  state.renaming=true;
+  renameListeningEl.style.display='flex';
+  renameTxEl.textContent='Listening for new name…';
+  renameTxEl.className='rename-transcript';
+  renameVoice.start((text,isFinal)=>{
+    renameTxEl.textContent=text||'Listening for new name…';
+    renameTxEl.className='rename-transcript'+(text?' has-text':'');
+    if(isFinal&&text){
+      const name=capFirst(text);
+      const iconKey=autoIconKey(name);
+      state.lists=state.lists.map(l=>l.id===state.currentListId?{...l,name,iconKey}:l);
+      saveData();state.renaming=false;renameVoice.stop();
+      renameListeningEl.style.display='none';
+      renderDetail();flash(`Renamed to "${name}"`);
+    }
+  },{onEnd:()=>{if(state.renaming){state.renaming=false;renameListeningEl.style.display='none';}}});
+});
+
+document.getElementById('rename-cancel').addEventListener('click',()=>{
+  state.renaming=false;renameVoice.stop();renameListeningEl.style.display='none';
+});
+
+// ═══════════════════════════════════════
+//  SERVICE WORKER
+// ═══════════════════════════════════════
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
 }
 
 // Handle browser back button
