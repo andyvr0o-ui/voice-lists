@@ -1266,6 +1266,37 @@ function processVoiceItem(text){
   renderDetail();
 }
 
+// ── Core item functions ──
+function addRegularItem(text){
+  const t=capFirst(text);
+  mutateItems(items=>[...items,{id:uid(),type:'item',text:t,checked:false}]);
+  flash(`Added "${t}"`);
+}
+
+function addSubItem(gid,text){
+  const t=capFirst(text);
+  mutateItems(items=>items.map(i=>i.id===gid?{...i,items:[...(i.items||[]),{id:uid(),text:t,checked:false}]}:i));
+  flash(`Added "${t}"`);
+}
+
+function addDayGroup(day,firstItem){
+  const gid=uid();
+  const subItems=firstItem?[{id:uid(),text:capFirst(firstItem),checked:false}]:[];
+  mutateItems(items=>[...items,{id:gid,type:'day-group',day,collapsed:false,items:subItems}]);
+  state.activeDayId=gid;
+  flash(`Added ${capFirst(day)}${firstItem?` · "${capFirst(firstItem)}"`:''}`);
+  reorderItems();
+}
+
+function addDateGroup(dateKey,firstItem){
+  const gid=uid();
+  const subItems=firstItem?[{id:uid(),text:capFirst(firstItem),checked:false}]:[];
+  mutateItems(items=>[...items,{id:gid,type:'day-group',dateKey,collapsed:false,items:subItems}]);
+  state.activeDayId=gid;
+  flash(`Added ${dateGroupLabel(dateKey)}${firstItem?` · "${capFirst(firstItem)}"`:''}`);
+  reorderItems();
+}
+
 // ── Dish item functions ──
 function makeDishItem(name){
   return{id:uid(),type:'dish-item',name:capFirst(name),
